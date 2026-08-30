@@ -16,7 +16,10 @@
                     <a href="{% url 'assessment:dashboard_redirect' %}">My Plan</a>
                     <a href="{% url 'progress:checkin' %}">Weekly Check-in</a>
                     <a href="{% url 'progress_history:history' %}">Progress</a>
-                    <a href="{% url 'accounts:logout' %}">Log out</a>
+                    <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button">Log out</button>
+                    </form>
                 {% else %}
                     <a href="{% url 'accounts:login' %}">Log in</a>
                     <a href="{% url 'accounts:signup' %}" class="btn-link">Get Started</a>
