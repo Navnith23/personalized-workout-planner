@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Fitness & Lifestyle Planner{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="{% url 'landing' %}">Personalized Fitness Planner</a>
+            <nav>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'assessment:dashboard_redirect' %}">My Plan</a>
+                    <a href="{% url 'progress:checkin' %}">Weekly Check-in</a>
+                    <a href="{% url 'progress_history:history' %}">Progress</a>
+                    <a href="{% url 'accounts:logout' %}">Log out</a>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}">Log in</a>
+                    <a href="{% url 'accounts:signup' %}" class="btn-link">Get Started</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="message {{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>This tool provides general fitness guidance and is not a substitute for professional medical advice.</p>
+        </div>
+    </footer>
+</body>
+</html>

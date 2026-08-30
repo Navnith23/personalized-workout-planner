@@ -1,0 +1,35 @@
+{% extends "base/base.html" %}
+{% block title %}Review your assessment{% endblock %}
+{% block content %}
+<section class="wizard">
+    <h1>Review & generate your plan</h1>
+    <p>Here's a summary of what you told us. If anything looks wrong, go back and update it before generating your plan.</p>
+
+    <div class="review-grid">
+        <div class="review-card">
+            <h3>Goals</h3>
+            <p>Primary: {{ assessment.get_primary_goal_display|default:"—" }}</p>
+        </div>
+        <div class="review-card">
+            <h3>Experience</h3>
+            <p>{{ assessment.get_training_experience_display|default:"—" }}</p>
+            <p>Last trained: {{ assessment.get_time_since_last_trained_display|default:"—" }}</p>
+        </div>
+        <div class="review-card">
+            <h3>Lifestyle</h3>
+            <p>Activity level: {{ assessment.get_daily_activity_level_display|default:"—" }}</p>
+            <p>Sedentary hours/day: {{ assessment.sedentary_hours_per_day|default:"—" }}</p>
+        </div>
+        <div class="review-card">
+            <h3>Constraints</h3>
+            <p>{{ assessment.days_per_week_available|default:"—" }} days/week, {{ assessment.minutes_per_session|default:"—" }} min/session</p>
+            <p>Location: {{ assessment.get_training_location_display|default:"—" }}</p>
+        </div>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Generate my plan</button>
+    </form>
+</section>
+{% endblock %}

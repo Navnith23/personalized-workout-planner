@@ -1,0 +1,40 @@
+{% extends "base/base.html" %}
+{% block title %}Your Progress{% endblock %}
+{% block content %}
+<section class="plan">
+    <h1>Your Progress</h1>
+
+    <h2>Weekly Check-ins</h2>
+    {% if checkins %}
+        <table class="data-table">
+            <thead>
+                <tr><th>Week</th><th>Completion</th><th>Difficulty</th><th>Recovery</th><th>Action taken</th></tr>
+            </thead>
+            <tbody>
+                {% for c in checkins %}
+                    <tr>
+                        <td>{{ c.week_number }}</td>
+                        <td>{{ c.completion_rate }}%</td>
+                        <td>{{ c.difficulty }}/10</td>
+                        <td>{{ c.recovery }}/10</td>
+                        <td>{{ c.recommendation }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No check-ins yet.</p>
+    {% endif %}
+
+    <h2>Recent Workout Logs</h2>
+    {% if logs %}
+        <ul>
+            {% for log in logs|slice:":20" %}
+                <li>{{ log.completed_at|date:"M j, Y" }} — {{ log.day.label }} — {% if log.completed %}Completed{% else %}Skipped{% endif %}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No workouts logged yet.</p>
+    {% endif %}
+</section>
+{% endblock %}

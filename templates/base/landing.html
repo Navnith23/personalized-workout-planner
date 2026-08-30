@@ -1,0 +1,29 @@
+{% extends "base/base.html" %}
+{% block title %}Personalized Fitness & Lifestyle Planner{% endblock %}
+{% block content %}
+<section class="hero">
+    <h1>A plan that fits your life — not a generic workout.</h1>
+    <p>
+        Tell us about your schedule, your current fitness, your goals, and what you have
+        available. We'll build a safe, realistic, progressive plan — and adjust it every
+        week based on how you're actually doing.
+    </p>
+    <div class="hero-actions">
+        {% if user.is_authenticated %}
+            <a class="btn btn-primary" href="{% url 'assessment:dashboard_redirect' %}">Go to my plan</a>
+        {% else %}
+            <a class="btn btn-primary" href="{% url 'accounts:signup' %}">Start your assessment</a>
+            <a class="btn" href="{% url 'accounts:login' %}">I already have an account</a>
+        {% endif %}
+    </div>
+</section>
+
+<section class="how-it-works">
+    <h2>How it works</h2>
+    <ol>
+        <li><strong>Assessment</strong> — safety screening, lifestyle, fitness tests, goals, and constraints.</li>
+        <li><strong>Personalized plan</strong> — the right training phase, structure, and exercises for you today.</li>
+        <li><strong>Weekly check-ins</strong> — the plan adapts based on adherence, recovery, and how you feel.</li>
+    </ol>
+</section>
+{% endblock %}

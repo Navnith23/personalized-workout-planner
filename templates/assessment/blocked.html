@@ -1,0 +1,24 @@
+{% extends "base/base.html" %}
+{% block title %}Please check with a professional first{% endblock %}
+{% block content %}
+<section class="form-card blocked-card">
+    <h1>Let's get a professional opinion first</h1>
+    <p>
+        Based on your safety screening, we're not going to generate an unrestricted exercise
+        plan right now. This isn't a diagnosis — it's just a precaution, because some of what
+        you shared (listed below) is worth discussing with a doctor or qualified health
+        professional before starting or changing an exercise routine.
+    </p>
+    <ul>
+        {% for flag in assessment.safety_flags %}
+            <li>{{ flag }}</li>
+        {% endfor %}
+    </ul>
+    <p>
+        Once you've been cleared, come back and we'll build your plan. In the meantime,
+        gentle daily movement you're already comfortable with (like short walks) is
+        generally reasonable — but please confirm with your provider first.
+    </p>
+    <a class="btn" href="{% url 'landing' %}">Back to home</a>
+</section>
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base/base.html" %}
+{% block title %}Weekly Check-in{% endblock %}
+{% block content %}
+<section class="wizard">
+    <h1>Weekly Check-in — Week {{ program.week_number }}</h1>
+    <p>A few quick questions so we can adjust next week's plan appropriately.</p>
+
+    <form method="post" novalidate class="assessment-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="field">
+                {{ field.label_tag }}
+                {{ field }}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">Submit check-in</button>
+    </form>
+</section>
+{% endblock %}

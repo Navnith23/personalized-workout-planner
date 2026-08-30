@@ -1,0 +1,49 @@
+{% extends "base/base.html" %}
+{% block title %}Your Plan{% endblock %}
+{% block content %}
+<section class="plan">
+    <h1>{{ program.name }}</h1>
+    <p class="plan-meta">
+        Week {{ program.week_number }} of {{ program.duration_weeks }} ·
+        Goal: {{ program.get_goal_display|default:program.goal }} ·
+        {{ program.days_per_week }} training days/week
+    </p>
+
+    <div class="plan-actions">
+        <a class="btn" href="{% url 'progress:checkin' %}">Submit weekly check-in</a>
+    </div>
+
+    <div class="week-grid">
+        {% for day in days %}
+            <div class="day-card day-type-{{ day.day_type }}">
+                <h3>{{ day.label }}</h3>
+                {% if day.day_type == 'rest' %}
+                    <p class="rest-note">Rest day. Recovery is part of the plan.</p>
+                {% else %}
+                    <ul class="workout-list">
+                        {% for w in day.workouts.all %}
+                            <li class="section-{{ w.section }}">
+                                <span class="ex-name">{{ w.exercise.name }}</span>
+                                <span class="ex-detail">
+                                    {{ w.sets }}x{% if w.reps %}{{ w.reps }}{% else %}{{ w.duration_seconds }}s{% endif %}
+                                    {% if w.rest_seconds %}· rest {{ w.rest_seconds }}s{% endif %}
+                                </span>
+                                {% if w.intensity_target %}<span class="ex-intensity">{{ w.intensity_target }}</span>{% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <form method="post" action="{% url 'programs:log_workout' day.id %}" class="log-form">
+                        {% csrf_token %}
+                        {% if day.id in logged_day_ids %}
+                            <span class="logged-badge">✓ Logged complete</span>
+                        {% else %}
+                            <button type="submit" name="completed" value="true" class="btn btn-small">Mark complete</button>
+                            <button type="submit" name="completed" value="false" class="btn btn-small btn-muted">Skip</button>
+                        {% endif %}
+                    </form>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
