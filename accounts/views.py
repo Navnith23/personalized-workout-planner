@@ -5,7 +5,6 @@ from django.urls import reverse_lazy
 from django.views import View
 
 from .forms import SignUpForm
-from .models import Profile
 
 
 class SignUpView(View):
@@ -20,7 +19,6 @@ class SignUpView(View):
         form = SignUpForm(request.POST)
         if form.is_valid():
             user = form.save()
-            Profile.objects.create(user=user)
             login(request, user)
             return redirect('assessment:basic')
         return render(request, self.template_name, {'form': form})
