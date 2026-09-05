@@ -79,7 +79,7 @@ def _score_preference(exercise, preferences):
     return 0
 
 
-def select_exercises_for_focus(assessment, focus, exclude_ids=None):
+def select_exercises_for_focus(assessment, focus, exclude_ids=None, rotation_seed=0, max_exercises=None):
     """
     Return an ordered list of Exercise instances covering the movement
     patterns appropriate for this day's focus.
@@ -89,6 +89,11 @@ def select_exercises_for_focus(assessment, focus, exclude_ids=None):
     preferences = _split_free_text_list(assessment.exercise_preferences)
 
     patterns = FOCUS_PATTERNS.get(focus, FOCUS_PATTERNS['full_body'])
+    if patterns:
+        offset = rotation_seed % len(patterns)
+        patterns = patterns[offset:] + patterns[:offset]
+    if max_exercises is not None:
+        patterns = patterns[:max_exercises]
     chosen = []
     used_ids = set(exclude_ids)
 
@@ -99,27 +104,38 @@ def select_exercises_for_focus(assessment, focus, exclude_ids=None):
         )
         if not candidates:
             continue
-        candidates.sort(key=lambda e: (-_score_preference(e, preferences), e.difficulty))
-        pick = candidates[0]
+        candidates.sort(key=lambda e: (-_score_preference(e, preferences), e.difficulty, e.id))
+        pick = candidates[rotation_seed % len(candidates)]
         chosen.append(pick)
         used_ids.add(pick.id)
 
     return chosen
 
 
-def select_warmup(assessment, count=1):
+def select_warmup(assessment, count=1, rotation_seed=0):
     qs = base_queryset(assessment).filter(exercise_type='warmup')
-    return list(qs[:count])
+    candidates = list(qs.order_by('difficulty', 'id'))
+    if candidates:
+        offset = rotation_seed % len(candidates)
+        candidates = candidates[offset:] + candidates[:offset]
+    return candidates[:count]
 
 
-def select_cooldown(assessment, count=1):
+def select_cooldown(assessment, count=1, rotation_seed=0):
     qs = base_queryset(assessment).filter(exercise_type='mobility')
-    return list(qs[:count])
+    candidates = list(qs.order_by('difficulty', 'id'))
+    if candidates:
+        offset = rotation_seed % len(candidates)
+        candidates = candidates[offset:] + candidates[:offset]
+    return candidates[:count]
 
 
-def select_cardio(assessment, count=1):
+def select_cardio(assessment, count=1, rotation_seed=0):
     preferences = _split_free_text_list(assessment.exercise_preferences)
     qs = base_queryset(assessment).filter(exercise_type='cardio')
     candidates = list(qs)
-    candidates.sort(key=lambda e: (-_score_preference(e, preferences), e.difficulty))
+    candidates.sort(key=lambda e: (-_score_preference(e, preferences), e.difficulty, e.id))
+    if candidates:
+        offset = rotation_seed % len(candidates)
+        candidates = candidates[offset:] + candidates[:offset]
     return candidates[:count]

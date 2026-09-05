@@ -23,6 +23,13 @@ GOAL_REP_ADJUST = {
     'fat_loss': '10-15',
 }
 
+GOAL_SET_ADJUST = {
+    'strength': 1,
+    'muscle_gain': 0,
+    'endurance': -1,
+    'fat_loss': 0,
+}
+
 
 def _phase_label(phase):
     return dict(Program.PHASE_CHOICES).get(phase, phase)
@@ -30,6 +37,8 @@ def _phase_label(phase):
 
 def _preset_for(assessment):
     preset = dict(PHASE_PRESETS.get(assessment.training_phase, PHASE_PRESETS['phase1']))
+    set_adjust = GOAL_SET_ADJUST.get(assessment.primary_goal, 0)
+    preset['sets'] = max(2, min(5, preset['sets'] + set_adjust))
     reps_override = GOAL_REP_ADJUST.get(assessment.primary_goal)
     if reps_override and assessment.training_phase != 'phase1':
         preset['reps'] = reps_override
@@ -70,9 +79,10 @@ def generate_program(user, assessment, structure):
             continue
 
         order = 0
+        rotation_seed = program.pk + day_plan.day_index
 
         if day_plan.day_type == 'active_recovery':
-            for ex in selector.select_cardio(assessment, count=1):
+            for ex in selector.select_cardio(assessment, count=1, rotation_seed=rotation_seed):
                 Workout.objects.create(
                     day=day, exercise=ex, section='cardio', order=order,
                     sets=1, duration_seconds=min(1800, session_minutes * 60),
@@ -82,7 +92,7 @@ def generate_program(user, assessment, structure):
             continue
 
         # --- Training day ---
-        for ex in selector.select_warmup(assessment, count=1):
+        for ex in selector.select_warmup(assessment, count=1, rotation_seed=rotation_seed):
             Workout.objects.create(
                 day=day, exercise=ex, section='warmup', order=order,
                 sets=1, duration_seconds=300, rest_seconds=0,
@@ -90,10 +100,14 @@ def generate_program(user, assessment, structure):
             )
             order += 1
 
-        main_exercises = selector.select_exercises_for_focus(assessment, day_plan.focus)
+        max_exercises = max(3, min(6, session_minutes // 6))
+        main_exercises = selector.select_exercises_for_focus(
+            assessment,
+            day_plan.focus,
+            rotation_seed=rotation_seed,
+            max_exercises=max_exercises,
+        )
         # Roughly budget: allow more exercises for longer sessions.
-        max_exercises = max(3, min(6, session_minutes // 8))
-        main_exercises = main_exercises[:max_exercises]
 
         for i, ex in enumerate(main_exercises):
             section = 'main' if i < 2 else 'accessory'
@@ -109,7 +123,7 @@ def generate_program(user, assessment, structure):
 
         # Cardio finisher if the goal or phase calls for it and there's time.
         if assessment.primary_goal in ('fat_loss', 'endurance', 'general_fitness') and session_minutes >= 30:
-            for ex in selector.select_cardio(assessment, count=1):
+            for ex in selector.select_cardio(assessment, count=1, rotation_seed=rotation_seed):
                 Workout.objects.create(
                     day=day, exercise=ex, section='cardio', order=order,
                     sets=1, duration_seconds=600, rest_seconds=0,
@@ -117,7 +131,7 @@ def generate_program(user, assessment, structure):
                 )
                 order += 1
 
-        for ex in selector.select_cooldown(assessment, count=1):
+        for ex in selector.select_cooldown(assessment, count=1, rotation_seed=rotation_seed):
             Workout.objects.create(
                 day=day, exercise=ex, section='cooldown', order=order,
                 sets=1, duration_seconds=300, rest_seconds=0,

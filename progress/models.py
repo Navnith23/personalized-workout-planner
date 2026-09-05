@@ -35,6 +35,12 @@ class CheckIn(models.Model):
 
     difficulty = models.PositiveSmallIntegerField(help_text='1 (too easy) - 10 (too hard)')
     energy = models.PositiveSmallIntegerField(help_text='1 (very low) - 10 (very high)')
+    resting_bpm = models.PositiveSmallIntegerField(
+            null=True, blank=True, help_text='Optional: resting heart rate, if you track it'
+        )
+    avg_workout_bpm = models.PositiveSmallIntegerField(
+            null=True, blank=True, help_text='Optional: average heart rate during sessions, if you track it'
+        )
     recovery = models.PositiveSmallIntegerField(help_text='1 (poor) - 10 (excellent)')
     pain_flag = models.BooleanField(default=False)
     pain_details = models.TextField(blank=True)
@@ -53,7 +59,7 @@ class CheckIn(models.Model):
     recommendation_notes = models.TextField(blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
     class Meta:
         ordering = ['-created_at']
 

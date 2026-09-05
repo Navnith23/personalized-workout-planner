@@ -122,3 +122,36 @@ def apply_progression(program, decision: ProgressionDecision):
 
     program.week_number += 1
     program.save()
+
+PHASE_ORDER = ['phase1', 'phase2', 'phase3', 'phase4']
+
+
+def maybe_promote_phase(program, decision):
+    """
+    After apply_progression() runs, check whether it's time to graduate
+    to the next phase: the program has completed its duration_weeks AND
+    the most recent decision was INCREASE (real, no-friction progress).
+    Returns True if a new program was generated (caller should re-fetch
+    the user's active program).
+    """
+    if decision.action != INCREASE:
+        return False
+    if program.week_number < program.duration_weeks:
+        return False
+
+    current_index = PHASE_ORDER.index(program.phase)
+    if current_index >= len(PHASE_ORDER) - 1:
+        return False  # already at phase4, nothing higher to graduate to
+
+    assessment = program.assessment
+    if assessment is None:
+        return False
+
+    next_phase = PHASE_ORDER[current_index + 1]
+    assessment.training_phase = next_phase
+    assessment.save()
+
+    from . import program_selector, workout_generator
+    structure = program_selector.build_program_structure(assessment)
+    workout_generator.generate_program(program.user, assessment, structure)
+    return True

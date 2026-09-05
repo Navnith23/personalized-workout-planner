@@ -13,6 +13,7 @@ from . import profile_builder
 from . import phase_selector
 from . import program_selector
 from . import workout_generator
+from ml_models.predictor import ml_progression_hint
 
 
 @dataclass
@@ -28,7 +29,16 @@ def generate_plan(user, assessment):
     if not safety.cleared:
         return PlanResult(blocked=True, safety_flags=safety.flags)
 
-    phase = phase_selector.select_training_phase(assessment)
+    profile = getattr(user, 'profile', None)
+    ml_hint = None
+    if profile:
+        ml_hint = ml_progression_hint(
+            stated_tier_label=assessment.experience_level,
+            workout_frequency=assessment.past_training_frequency_per_week,
+            bmi=profile.bmi,
+        )
+
+    phase = phase_selector.select_training_phase(assessment, ml_hint=ml_hint)
     assessment.training_phase = phase
     assessment.status = 'completed'
     assessment.save()

@@ -20,7 +20,7 @@ PHASE_LABELS = {
 }
 
 
-def select_training_phase(assessment) -> str:
+def select_training_phase(assessment, ml_hint=None) -> str:
     experience = assessment.experience_level or 'beginner'
     cardio = assessment.cardio_capacity or 0
     strength = assessment.strength_capacity or 0
@@ -37,26 +37,41 @@ def select_training_phase(assessment) -> str:
 
     if experience == 'beginner':
         if very_deconditioned:
-            return PHASE_1
-        return PHASE_2
-
-    if experience == 'intermediate':
+            phase = PHASE_1
+        else:
+            phase = PHASE_2
+    elif experience == 'intermediate':
         if very_deconditioned:
-            return PHASE_1
-        if work_capacity < 45:
-            return PHASE_2
-        return PHASE_3
-
-    if experience == 'advanced':
+            phase = PHASE_1
+        elif work_capacity < 45:
+            phase = PHASE_2
+        else:
+            phase = PHASE_3
+    elif experience == 'advanced':
         if very_deconditioned:
             # A long layoff can make even an "advanced" trainee currently
             # deconditioned — never assume experience overrides today's
             # measured capacity.
-            return PHASE_1
-        if work_capacity < 45:
-            return PHASE_2
-        if work_capacity < 70:
-            return PHASE_3
-        return PHASE_4
+            phase = PHASE_1
+        elif work_capacity < 45:
+            phase = PHASE_2
+        elif work_capacity < 70:
+            phase = PHASE_3
+        else:
+            phase = PHASE_4
+    else:
+        phase = PHASE_1
 
-    return PHASE_1
+    # The model can only provide a soft experience-pattern hint. Never let it
+    # bypass safety flags or current-capacity gates in the rule engine.
+    if (
+        ml_hint
+        and 'more advanced' in ml_hint.lower()
+        and not getattr(assessment, 'safety_flags', None)
+        and not very_deconditioned
+        and work_capacity >= 45
+        and phase in (PHASE_1, PHASE_2, PHASE_3)
+    ):
+        return {PHASE_1: PHASE_2, PHASE_2: PHASE_3, PHASE_3: PHASE_4}[phase]
+
+    return phase

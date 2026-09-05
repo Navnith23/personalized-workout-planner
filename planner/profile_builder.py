@@ -74,12 +74,12 @@ def compute_capacity_scores(assessment) -> dict:
 
     # Cardio capacity: walking duration + pace + stair tolerance
     walk_minutes = assessment.walking_duration_minutes or 0
-    walk_score = min(100, round((walk_minutes / 45) * 100)) if walk_minutes else 0
+    walk_score = min(100, round((walk_minutes / 45) * 100, 1)) if walk_minutes else 0
     pace_score = _score_from_choice(assessment.walking_pace, ['slow', 'moderate', 'brisk', 'fast']) or 0
     stair_score = _score_from_choice(
         assessment.stair_tolerance, ['poor', 'fair', 'good', 'very_good']
     ) or 0
-    cardio_capacity = round((walk_score * 0.5) + (pace_score * 0.25) + (stair_score * 0.25))
+    cardio_capacity = round((walk_score * 0.5) + (pace_score * 0.25) + (stair_score * 0.25), 1)
 
     # Strength capacity: squat + push-up + sit-to-stand
     squat_score = _score_from_choice(
@@ -89,8 +89,8 @@ def compute_capacity_scores(assessment) -> dict:
         assessment.pushup_variation, ['none', 'wall_incline', 'knee', 'full', 'advanced']
     ) or 0
     sit_to_stand = assessment.sit_to_stand_reps_30s or 0
-    sts_score = min(100, round((sit_to_stand / 20) * 100))
-    strength_capacity = round((squat_score * 0.4) + (pushup_score * 0.4) + (sts_score * 0.2))
+    sts_score = min(100, round((sit_to_stand / 20) * 100, 1))
+    strength_capacity = round((squat_score * 0.4) + (pushup_score * 0.4) + (sts_score * 0.2), 1)
 
     # Work capacity: blend of cardio + strength + inverse perceived exertion
     exertion = assessment.perceived_exertion_after_tests
@@ -98,18 +98,18 @@ def compute_capacity_scores(assessment) -> dict:
     if exertion:
         # Higher exertion for the same tests implies lower current work capacity
         exertion_penalty = max(0, (exertion - 5)) * 4
-    work_capacity = max(0, round((cardio_capacity * 0.5 + strength_capacity * 0.5) - exertion_penalty))
+    work_capacity = max(0, round((cardio_capacity * 0.5 + strength_capacity * 0.5) - exertion_penalty, 1))
 
     # Mobility / balance
     mobility_score = _score_from_choice(
         assessment.mobility_balance_rating, ['poor', 'fair', 'good', 'very_good']
     )
     plank_seconds = assessment.plank_hold_seconds or 0
-    plank_score = min(100, round((plank_seconds / 90) * 100))
+    plank_score = min(100, round((plank_seconds / 90) * 100, 1))
     if mobility_score is None:
         mobility_score = plank_score
     else:
-        mobility_score = round((mobility_score * 0.6) + (plank_score * 0.4))
+        mobility_score = round((mobility_score * 0.6) + (plank_score * 0.4), 1)
 
     return {
         'cardio_capacity': cardio_capacity,
