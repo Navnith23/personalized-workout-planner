@@ -1,4 +1,3 @@
-import joblib
 import logging
 from pathlib import Path
 from django.conf import settings
@@ -9,9 +8,21 @@ _progression_bundle = None
 _recovery_bundle = None
 
 
+def _load_joblib():
+    try:
+        import joblib
+    except ImportError:
+        logger.warning("ML predictors unavailable: install the joblib requirement")
+        return None
+    return joblib
+
+
 def _load_progression():
     global _progression_bundle
     if _progression_bundle is None:
+        joblib = _load_joblib()
+        if joblib is None:
+            return None
         path = Path(settings.BASE_DIR) / "ml_models" / "progression_predictor.pkl"
         _progression_bundle = joblib.load(path)
     return _progression_bundle
@@ -20,6 +31,9 @@ def _load_progression():
 def _load_recovery():
     global _recovery_bundle
     if _recovery_bundle is None:
+        joblib = _load_joblib()
+        if joblib is None:
+            return None
         path = Path(settings.BASE_DIR) / "ml_models" / "recovery_signal.pkl"
         _recovery_bundle = joblib.load(path)
     return _recovery_bundle
@@ -27,6 +41,8 @@ def _load_recovery():
 
 def predict_experience_tier(workout_frequency, bmi):
     bundle = _load_progression()
+    if bundle is None:
+        return None
     model = bundle["model"]
     features = [[workout_frequency, bmi]]
     prediction = int(model.predict(features)[0])
@@ -49,6 +65,8 @@ def ml_progression_hint(stated_tier_label, workout_frequency, bmi):
         return None
 
     predicted = predict_experience_tier(workout_frequency, bmi)
+    if predicted is None:
+        return None
 
     if predicted > stated:
         return "Your training pattern looks more advanced than your current level — consider progressing."
@@ -61,6 +79,8 @@ def check_recovery_flag(resting_bpm, avg_workout_bpm):
     if resting_bpm is None or avg_workout_bpm is None:
         return False
     bundle = _load_recovery()
+    if bundle is None:
+        return False
     model = bundle["model"]
     result = model.predict([[resting_bpm, avg_workout_bpm]])
     flagged = result[0] == -1
