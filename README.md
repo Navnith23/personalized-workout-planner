@@ -69,6 +69,88 @@ conditions.
 | `progress`   | Workout logging + weekly check-ins + adaptive progression   |
 | `planner`    | Pure-Python recommendation engine (no Django dependency)    |
 
+## Project structure
+
+```text
+fitness_planner/
+├── README.md
+├── manage.py
+├── requirements.txt
+├── db.sqlite3
+├── config/
+│   ├── __init__.py
+│   ├── settings.py
+│   ├── urls.py
+│   ├── wsgi.py
+│   └── asgi.py
+├── accounts/
+│   ├── migrations/
+│   ├── templates/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── assessment/
+│   ├── migrations/
+│   ├── templates/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── exercises/
+│   ├── management/
+│   ├── migrations/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── planner/
+│   ├── __init__.py
+│   ├── profile_builder.py
+│   ├── phase_selector.py
+│   ├── program_selector.py
+│   ├── exercise_selector.py
+│   ├── workout_generator.py
+│   ├── progression.py
+│   ├── recommendation.py
+│   └── tests/
+├── programs/
+│   ├── migrations/
+│   ├── templates/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── progress/
+│   ├── migrations/
+│   ├── templates/
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── templates/
+│   └── ...
+├── static/
+│   └── css/
+├── media/
+├── ml_models/
+│   ├── progression_predictor.pkl
+│   └── recovery_signal.pkl
+├── ml_training/
+│   ├── data/
+│   └── README.md
+├── staticfiles/
+├── venv/
+├── test_plan_variety.py
+└── .gitignore
+```
+
 ## Notes
 
 - Database is SQLite by default (`db.sqlite3`); swap `DATABASES` in

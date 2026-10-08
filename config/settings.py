@@ -40,7 +40,7 @@ _raw_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = (
     [h.strip() for h in _raw_hosts.split(',') if h.strip()]
     if _raw_hosts
-    else (['localhost', '127.0.0.1'] if DEBUG else [])
+    else ['localhost', '127.0.0.1', 'navnith23.pythonanywhere.com']
 )
 
 # HTTPS / cookie security — always on in production, off in local dev

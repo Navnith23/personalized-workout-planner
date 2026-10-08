@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.views import View
 
 from accounts.forms import BasicInfoForm
+from accounts.models import Profile
 from .forms import (
     SafetyScreeningForm, LifestyleForm, GoalsForm, ExperienceForm,
     FitnessTestForm, ConstraintsForm,
@@ -48,13 +49,15 @@ class BasicInfoStepView(LoginRequiredMixin, View):
     template_name = 'assessment/step_form.html'
 
     def get(self, request):
-        form = BasicInfoForm(instance=request.user.profile)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        form = BasicInfoForm(instance=profile)
         ctx = _step_context('basic', request.user)
         ctx['form'] = form
         return render(request, self.template_name, ctx)
 
     def post(self, request):
-        form = BasicInfoForm(request.POST, instance=request.user.profile)
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        form = BasicInfoForm(request.POST, instance=profile)
         if form.is_valid():
             form.save()
             return redirect('assessment:safety')
