@@ -89,9 +89,27 @@ class Workout(models.Model):
         help_text='e.g. "RPE 6-7", "conversational pace", "RIR 2-3"'
     )
     notes = models.CharField(max_length=255, blank=True)
+    # Numeric sort key derived from the section name so ordering works
+    # without alphabetic string comparison (warmup < main < accessory ...).
+    section_order = models.PositiveSmallIntegerField(default=0, editable=False)
+
+    # SECTION_ORDER maps section name → display position so the plan page
+    # renders warm-up → main → accessory → cardio → cooldown.
+    # We store the numeric rank in a DB column at save time (section_order).
+    SECTION_ORDER_MAP = {
+        'warmup': 0,
+        'main': 1,
+        'accessory': 2,
+        'cardio': 3,
+        'cooldown': 4,
+    }
 
     class Meta:
-        ordering = ['section', 'order']
+        ordering = ['section_order', 'order']
+
+    def save(self, *args, **kwargs):
+        self.section_order = self.SECTION_ORDER_MAP.get(self.section, 99)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.exercise.name} — {self.sets}x{self.reps or self.duration_seconds}"

@@ -1,10 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 from django.shortcuts import render, redirect
 
 from programs.models import Program
 from planner.progression import decide_progression, apply_progression, maybe_promote_phase, STOP_AND_REFER
-from ml_models.predictor import ml_progression_hint, check_recovery_flag
 from .forms import CheckInForm
 from .models import CheckIn, WorkoutLog
 
@@ -16,6 +16,20 @@ def weekly_checkin(request):
         messages.info(request, "You don't have an active plan yet.")
         return redirect('assessment:dashboard_redirect')
 
+    # ---- Rate-limit: one check-in per program-week ----
+    already_checked_in = CheckIn.objects.filter(
+        user=request.user,
+        program=program,
+        week_number=program.week_number,
+    ).exists()
+    if already_checked_in:
+        messages.warning(
+            request,
+            f"You've already submitted your week {program.week_number} check-in. "
+            "Come back next week!"
+        )
+        return redirect('programs:plan_detail', program_id=program.id)
+
     if request.method == 'POST':
         form = CheckInForm(request.POST)
         if form.is_valid():
@@ -26,7 +40,16 @@ def weekly_checkin(request):
             decision = decide_progression(checkin)
             checkin.recommendation = decision.action
             checkin.recommendation_notes = decision.notes
-            checkin.save()
+
+            try:
+                checkin.save()
+            except IntegrityError:
+                # Race condition — second submission arrived simultaneously.
+                messages.warning(
+                    request,
+                    f"You've already submitted your week {program.week_number} check-in."
+                )
+                return redirect('programs:plan_detail', program_id=program.id)
 
             if decision.action != STOP_AND_REFER:
                 apply_progression(program, decision)
@@ -37,36 +60,29 @@ def weekly_checkin(request):
 
             messages.success(request, decision.notes)
 
-            profile = getattr(request.user, 'profile', None)
-            if profile and profile.bmi:
-                hint = ml_progression_hint(
-                    stated_tier_label=profile.fitness_level,
-                    workout_frequency=program.days_per_week,
-                    bmi=profile.bmi,
-                )
-                if hint:
-                    messages.info(request, hint)
-
-            if checkin.resting_bpm and checkin.avg_workout_bpm:
-                if check_recovery_flag(checkin.resting_bpm, checkin.avg_workout_bpm):
-                    messages.info(
-                        request,
-                        "Your heart rate pattern this week looks a bit unusual compared to typical "
-                        "training data — consider prioritizing extra rest. This isn't a diagnosis, "
-                        "just a pattern flag."
-                    )
-
             return redirect('programs:plan_detail', program_id=program.id)
     else:
-        completed_count = WorkoutLog.objects.filter(
-            user=request.user, day__program=program, completed=True
-        ).count()
+        # Pre-fill completed_sessions: count *distinct days* logged this week
+        # (not raw log rows, so logging the same day twice doesn't inflate the count).
+        completed_count = (
+            WorkoutLog.objects
+            .filter(user=request.user, day__program=program, completed=True)
+            .values('day_id')
+            .distinct()
+            .count()
+        )
+        # Cap at the program's scheduled days so the prefill is always ≤ planned.
+        completed_count = min(completed_count, program.days_per_week)
         form = CheckInForm(initial={
             'planned_sessions': program.days_per_week,
             'completed_sessions': completed_count,
         })
 
-    return render(request, 'progress/checkin_form.html', {'form': form, 'program': program})
+    return render(request, 'progress/checkin_form.html', {
+        'form': form,
+        'program': program,
+        'already_checked_in': already_checked_in,
+    })
 
 
 @login_required

@@ -16,5 +16,6 @@
         <button type="submit" class="btn btn-primary">Log in</button>
     </form>
     <p>New here? <a href="{% url 'accounts:signup' %}">Create an account</a></p>
+    <p><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p>
 </section>
 {% endblock %}

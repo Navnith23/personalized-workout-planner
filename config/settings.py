@@ -1,5 +1,17 @@
 """
 Django settings for the Personalized Fitness & Lifestyle Planner.
+
+SECURITY CHECKLIST
+==================
+Deployment (PythonAnywhere) must set the following environment variables
+in the WSGI configuration file or via the web dashboard:
+
+  DJANGO_SECRET_KEY   — a long random string (generate with:
+                         python -c "import secrets; print(secrets.token_hex(50))")
+  DJANGO_DEBUG        — set to "False" in production
+  DJANGO_ALLOWED_HOSTS — comma-separated list, e.g. "navnith23.pythonanywhere.com"
+
+Do NOT commit a real secret key to version control.
 """
 import os
 import importlib.util
@@ -7,14 +19,41 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'dev-only-secret-key-change-this-in-production-0000000000'
+# ---------------------------------------------------------------------------
+# Security settings
+# ---------------------------------------------------------------------------
+
+_raw_secret = os.environ.get('DJANGO_SECRET_KEY', '')
+if not _raw_secret:
+    import warnings
+    warnings.warn(
+        "DJANGO_SECRET_KEY is not set. Using a default is ONLY acceptable in "
+        "local development. Set the environment variable before deploying.",
+        stacklevel=1,
+    )
+    _raw_secret = 'dev-only-secret-key-do-not-use-in-production-!!!'
+SECRET_KEY = _raw_secret
+
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
+
+_raw_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
+ALLOWED_HOSTS = (
+    [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+    if _raw_hosts
+    else (['localhost', '127.0.0.1'] if DEBUG else [])
 )
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+# HTTPS / cookie security — always on in production, off in local dev
+SESSION_COOKIE_SECURE   = not DEBUG
+CSRF_COOKIE_SECURE      = not DEBUG
+SECURE_SSL_REDIRECT     = not DEBUG
+SECURE_HSTS_SECONDS     = 0 if DEBUG else 31536000   # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD     = not DEBUG
 
-ALLOWED_HOSTS = ['*']
+# ---------------------------------------------------------------------------
+# Application definition
+# ---------------------------------------------------------------------------
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -105,3 +144,29 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'assessment:dashboard_redirect'
 LOGOUT_REDIRECT_URL = 'accounts:login'
+
+# ---------------------------------------------------------------------------
+# Email — password reset
+# ---------------------------------------------------------------------------
+# For PythonAnywhere, configure SMTP via environment variables.
+# Example: Gmail SMTP (replace with real credentials, never commit them).
+#
+#   EMAIL_BACKEND  = 'django.core.mail.backends.smtp.EmailBackend'
+#   EMAIL_HOST     = 'smtp.gmail.com'
+#   EMAIL_PORT     = 587
+#   EMAIL_USE_TLS  = True
+#   EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+#   EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+#
+# Until SMTP is configured on PythonAnywhere, use the console backend so
+# password-reset emails print to the server log (safe for dev/staging).
+EMAIL_BACKEND = os.environ.get(
+    'DJANGO_EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend',
+)
+EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True').lower() in ('true', '1')
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', 'noreply@fitplanner.example.com')

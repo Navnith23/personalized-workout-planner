@@ -62,6 +62,9 @@ class CheckIn(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        # Enforce one check-in per program-week — prevents the spam exploit
+        # where rapid resubmissions escalate reps/phase in minutes.
+        unique_together = ('user', 'program', 'week_number')
 
     @property
     def completion_rate(self):

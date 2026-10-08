@@ -5,6 +5,7 @@ preferences, avoided exercises, and the user's current difficulty ceiling
 """
 import re
 from exercises.models import Exercise
+from planner.profile_builder import INJURY_EXERCISE_EXCLUSIONS
 
 # Movement patterns that should appear for each "focus" type, in priority
 # order. The generator walks this list and tries to fill each slot.
@@ -65,6 +66,15 @@ def base_queryset(assessment):
     if assessment.safety_flags:
         qs = qs.filter(is_low_impact=True, is_beginner_safe=True)
 
+    # Keyword-based injury exclusions derived from free-text pain/injury details.
+    # This supplements the is_low_impact/is_beginner_safe filter above by
+    # removing specific exercises that are contraindicated for the stated body part.
+    injury_text = (assessment.pain_or_injury_details or '').lower()
+    for body_part, excluded_names in INJURY_EXERCISE_EXCLUSIONS.items():
+        if body_part in injury_text:
+            for ex_name_fragment in excluded_names:
+                qs = qs.exclude(name__icontains=ex_name_fragment)
+
     return qs
 
 
@@ -99,7 +109,10 @@ def select_exercises_for_focus(assessment, focus, exclude_ids=None, rotation_see
 
     for pattern in patterns:
         candidates = list(
-            qs.filter(movement_pattern=pattern, exercise_type__in=['main_strength', 'accessory'])
+            qs.filter(
+                movement_pattern=pattern,
+                exercise_type__in=['main_strength', 'accessory', 'core'],
+            )
             .exclude(id__in=used_ids)
         )
         if not candidates:

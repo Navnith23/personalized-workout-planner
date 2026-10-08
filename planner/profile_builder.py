@@ -20,6 +20,10 @@ class SafetyResult:
     requires_professional_evaluation: bool = False
 
 
+# Minimum age to receive an unrestricted plan.  Users under this age are
+# blocked and shown the safety page regardless of yes/no answers.
+AGE_MINIMUM = 16
+
 # Any "yes" answer to these is a hard stop — the user should see a
 # professional before receiving an unrestricted plan.
 HARD_STOP_FIELDS = [
@@ -36,23 +40,85 @@ SOFT_FLAG_FIELDS = [
     ('had_recent_surgery_or_injury', 'Recent surgery or injury'),
 ]
 
+# Keywords in free-text fields that indicate a potentially serious symptom.
+# Matching ANY of these triggers a hard stop (same as a yes/no hard stop).
+FREE_TEXT_DANGER_KEYWORDS = [
+    'chest pain', 'chest pressure', 'chest tightness',
+    'heart attack', 'cardiac',
+    'faint', 'fainting', 'pass out', 'blackout', 'black out',
+    'shortness of breath', 'can\'t breathe', 'cannot breathe',
+    'stroke', 'seizure',
+    'pacemaker', 'defibrillator',
+    'doctor told me not', 'advised not to exercise', 'banned from exercise',
+]
+
+# Injury-body-part keywords → exercises to exclude by name fragment.
+# Add more mappings as the exercise library grows.
+INJURY_EXERCISE_EXCLUSIONS = {
+    'knee': ['squat', 'lunge', 'leg press', 'step-up', 'jump'],
+    'shoulder': ['overhead press', 'shoulder press', 'lateral raise', 'upright row', 'pull-up'],
+    'back': ['deadlift', 'good morning', 'back extension', 'barbell row'],
+    'wrist': ['push-up', 'plank', 'wrist curl', 'front squat'],
+    'ankle': ['calf raise', 'jump', 'run', 'sprint', 'box jump'],
+    'hip': ['hip thrust', 'squat', 'lunge', 'deadlift'],
+}
+
+
+
+def _scan_free_text_for_danger(text):
+    """Return the first matching keyword if a danger phrase is found, else None."""
+    lower = (text or '').lower()
+    for kw in FREE_TEXT_DANGER_KEYWORDS:
+        if kw in lower:
+            return kw
+    return None
+
 
 def run_safety_screen(assessment) -> SafetyResult:
     """Never diagnoses. Only decides whether to gate the plan."""
     flags = []
     hard_stop = False
 
+    # --- Age gate --------------------------------------------------------
+    age = None
+    try:
+        age = assessment.user.profile.age
+    except Exception:
+        pass
+    if age is not None and age < AGE_MINIMUM:
+        flags.append(f'Age {age} is below the minimum ({AGE_MINIMUM}) for an unrestricted plan')
+        hard_stop = True
+
+    # --- Yes/No hard-stop questions --------------------------------------
     for field_name, label in HARD_STOP_FIELDS:
         if getattr(assessment, field_name) is True:
             flags.append(label)
             hard_stop = True
 
+    # --- Free-text keyword scan -----------------------------------------
+    free_text_fields = [
+        assessment.pain_or_injury_details,
+        assessment.medical_condition_details,
+        assessment.exercise_restriction_details,
+        assessment.recent_surgery_details,
+        assessment.other_safety_concern,
+    ]
+    for text in free_text_fields:
+        matched_kw = _scan_free_text_for_danger(text)
+        if matched_kw:
+            flags.append(f'Potential safety concern mentioned: "{matched_kw}"')
+            hard_stop = True
+            break  # one hard-stop is enough
+
+    # --- Soft flags (constrain but don't block) -------------------------
     for field_name, label in SOFT_FLAG_FIELDS:
         if getattr(assessment, field_name) is True:
             flags.append(label)
 
     if (assessment.other_safety_concern or '').strip():
-        flags.append('Other safety concern noted')
+        # Even if no danger keyword was found, note the concern.
+        if not any('Potential safety concern' in f for f in flags):
+            flags.append('Other safety concern noted')
 
     return SafetyResult(
         cleared=not hard_stop,

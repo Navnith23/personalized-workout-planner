@@ -79,6 +79,11 @@ def decide_progression(checkin) -> ProgressionDecision:
     )
 
 
+# Maximum high end of a rep range; prevents unlimited escalation from repeated
+# INCREASE decisions without a rep cap.
+REP_RANGE_MAX_HIGH = 20
+
+
 def apply_progression(program, decision: ProgressionDecision):
     """
     Adjust the *next* week's Workout rows for the active program based on
@@ -95,7 +100,10 @@ def apply_progression(program, decision: ProgressionDecision):
                 low, high = w.reps.split('-')
                 try:
                     low, high = int(low), int(high)
-                    w.reps = f"{low + 1}-{high + 1}"
+                    # Cap the high end so reps can't escalate indefinitely.
+                    new_high = min(high + 1, REP_RANGE_MAX_HIGH)
+                    new_low  = min(low + 1, new_high)
+                    w.reps = f"{new_low}-{new_high}"
                 except ValueError:
                     pass
             elif w.duration_seconds:
@@ -110,10 +118,21 @@ def apply_progression(program, decision: ProgressionDecision):
             w.save()
 
     elif decision.action == SIMPLIFY:
-        # Drop the lowest-priority accessory work, keep the main lifts.
-        accessories = list(Workout.objects.filter(day__program=program, section='accessory'))
-        for w in accessories[max(1, len(accessories) // 2):]:
-            w.delete()
+        # Drop accessories evenly per workout day (not program-wide in query
+        # order, which previously left some days with zero accessories while
+        # others kept all of theirs).
+        from programs.models import WorkoutDay
+        training_days = WorkoutDay.objects.filter(
+            program=program, day_type='training'
+        )
+        for training_day in training_days:
+            day_accessories = list(
+                Workout.objects.filter(day=training_day, section='accessory').order_by('order')
+            )
+            # Keep at least half (rounded up), drop the rest.
+            keep_count = max(0, (len(day_accessories) + 1) // 2)
+            for w in day_accessories[keep_count:]:
+                w.delete()
 
     elif decision.action == STOP_AND_REFER:
         # Leave the plan untouched but do not progress; the view layer
@@ -136,7 +155,10 @@ def maybe_promote_phase(program, decision):
     """
     if decision.action != INCREASE:
         return False
-    if program.week_number < program.duration_weeks:
+    # Off-by-one fix: the program has duration_weeks=4 weeks.
+    # week_number is incremented *after* apply_progression(), so at the end
+    # of week 4 week_number will be 5.  Promote only when all weeks are done.
+    if program.week_number <= program.duration_weeks:
         return False
 
     current_index = PHASE_ORDER.index(program.phase)

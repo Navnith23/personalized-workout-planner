@@ -17,14 +17,12 @@ ml_training/
   data/
     gym_members_exercise_tracking.csv
   models/          <- created automatically when you run the scripts
-  train_recommender.py
   train_progression.py
   train_recovery_signal.py
 ```
 
 ## 4. Run each script
 ```bash
-python train_recommender.py
 python train_progression.py
 python train_recovery_signal.py
 ```
@@ -32,11 +30,10 @@ python train_recovery_signal.py
 Each prints a quick accuracy report and saves a `.pkl` file into `models/`.
 
 ## 5. What you'll have afterward
-- `models/workout_recommender.pkl`
 - `models/progression_predictor.pkl`
 - `models/recovery_signal.pkl`
 
-These 3 files are small (a few hundred KB to a couple MB) — copy them into
+These 2 files are small (a few hundred KB to a couple MB) — copy them into
 your Django project (e.g. a new `ml_models/` folder) and commit them to
 your repo like any other file. No training happens on PythonAnywhere —
 it only ever loads these pre-trained files with `joblib.load(...)`.

@@ -12,6 +12,13 @@ urlpatterns = [
     path('plan/', include('programs.urls')),
     path('checkin/', include('progress.urls')),
     path('progress/', include('progress.urls_history')),
+
+    # Static legal pages — required because we collect health data.
+    path(
+        'privacy/',
+        TemplateView.as_view(template_name='base/privacy.html'),
+        name='privacy',
+    ),
 ]
 
 if settings.DEBUG:

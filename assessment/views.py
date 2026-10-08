@@ -78,10 +78,21 @@ class SafetyStepView(LoginRequiredMixin, View):
         form = SafetyScreeningForm(request.POST, instance=assessment)
         if form.is_valid():
             form.save()
+            # Run the safety screen now so we can redirect blocked users
+            # immediately at step 2 instead of waiting until step 7.
+            from planner.profile_builder import run_safety_screen
+            safety = run_safety_screen(assessment)
+            if not safety.cleared:
+                assessment.safety_cleared = False
+                assessment.safety_flags = safety.flags
+                assessment.status = 'blocked'
+                assessment.save()
+                return redirect('assessment:blocked', assessment_id=assessment.id)
             return redirect('assessment:lifestyle')
         ctx = _step_context('safety', request.user)
         ctx['form'] = form
         return render(request, self.template_name, ctx)
+
 
 
 class LifestyleStepView(LoginRequiredMixin, View):

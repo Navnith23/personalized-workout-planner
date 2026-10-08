@@ -62,16 +62,8 @@ def select_training_phase(assessment, ml_hint=None) -> str:
     else:
         phase = PHASE_1
 
-    # The model can only provide a soft experience-pattern hint. Never let it
-    # bypass safety flags or current-capacity gates in the rule engine.
-    if (
-        ml_hint
-        and 'more advanced' in ml_hint.lower()
-        and not getattr(assessment, 'safety_flags', None)
-        and not very_deconditioned
-        and work_capacity >= 45
-        and phase in (PHASE_1, PHASE_2, PHASE_3)
-    ):
-        return {PHASE_1: PHASE_2, PHASE_2: PHASE_3, PHASE_3: PHASE_4}[phase]
+    # NOTE: The ML progression hint is disabled (model trained on wrong features).
+    # ml_hint parameter is kept for API compatibility but is not used until
+    # the model is retrained on workout_frequency + bmi data.
 
     return phase
