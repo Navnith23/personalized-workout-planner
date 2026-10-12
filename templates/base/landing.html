@@ -1,29 +1,151 @@
 {% extends "base/base.html" %}
-{% block title %}Personalized Fitness & Lifestyle Planner{% endblock %}
+{% block title %}KINETIC//PLANNER — Precision Adaptive Hypertrophy Engine{% endblock %}
 {% block content %}
-<section class="hero">
-    <h1>A plan that fits your life — not a generic workout.</h1>
-    <p>
-        Tell us about your schedule, your current fitness, your goals, and what you have
-        available. We'll build a safe, realistic, progressive plan — and adjust it every
-        week based on how you're actually doing.
-    </p>
-    <div class="hero-actions">
-        {% if user.is_authenticated %}
-            <a class="btn btn-primary" href="{% url 'assessment:dashboard_redirect' %}">Go to my plan</a>
-        {% else %}
-            <a class="btn btn-primary" href="{% url 'accounts:signup' %}">Start your assessment</a>
-            <a class="btn" href="{% url 'accounts:login' %}">I already have an account</a>
-        {% endif %}
-    </div>
-</section>
+<div class="space-y-16 py-6">
+    <!-- Hero Section -->
+    <section class="relative pt-6 pb-12 overflow-hidden border-b border-border-subtle">
+        <!-- Ambient Glow Backdrop -->
+        <div class="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-electric-lime/10 blur-[130px] rounded-full pointer-events-none -z-10"></div>
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+            <!-- Hero Content Left -->
+            <div class="lg:col-span-7 flex flex-col gap-6">
+                <div class="inline-flex items-center gap-2 self-start bg-surface-slate border border-border-subtle px-3 py-1.5 rounded-full">
+                    <span class="w-2 h-2 rounded-full bg-electric-lime animate-pulse"></span>
+                    <span class="font-display text-[11px] font-bold tracking-widest uppercase text-text-secondary">PRECISION ADAPTIVE HYPERTROPHY ENGINE</span>
+                </div>
+                <h1 class="font-display text-4xl md:text-5xl font-bold uppercase text-text-primary tracking-tighter leading-tight">
+                    A PLAN THAT FITS YOUR LIFE — <span class="text-electric-lime">NOT A GENERIC WORKOUT.</span>
+                </h1>
+                <p class="text-base md:text-lg text-text-secondary max-w-2xl leading-relaxed">
+                    Adaptive hypertrophy, strength programming, and lifestyle calibration built around your schedule, equipment, and biofeedback. Updated weekly based on how you recover.
+                </p>
+                <!-- Primary CTAs -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
+                    {% if user.is_authenticated %}
+                        <a class="btn btn-primary text-base py-3.5 px-6" href="{% url 'assessment:dashboard_redirect' %}">
+                            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">speed</span>
+                            <span>ACCESS ACTIVE PROTOCOL</span>
+                        </a>
+                        <a class="btn py-3.5 px-6" href="{% url 'progress:checkin' %}">
+                            <span class="material-symbols-outlined text-[20px]">fact_check</span>
+                            <span>WEEKLY CHECK-IN</span>
+                        </a>
+                    {% else %}
+                        <a class="btn btn-primary text-base py-3.5 px-6" href="{% url 'accounts:signup' %}">
+                            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">speed</span>
+                            <span>START 3-MINUTE ASSESSMENT</span>
+                        </a>
+                        <a class="btn py-3.5 px-6" href="{% url 'accounts:login' %}">
+                            <span class="material-symbols-outlined text-[20px]">login</span>
+                            <span>EXISTING ATHLETE LOGIN</span>
+                        </a>
+                    {% endif %}
+                </div>
+                <!-- Athletic Proof Metrics Strip -->
+                <div class="grid grid-cols-3 gap-4 pt-8 border-t border-border-subtle mt-4">
+                    <div>
+                        <div class="font-display text-2xl md:text-3xl font-bold text-text-primary">12,000+</div>
+                        <div class="font-display text-[11px] font-bold text-text-muted mt-1 uppercase tracking-wider">Active Athletes</div>
+                    </div>
+                    <div class="border-l border-border-subtle pl-4">
+                        <div class="font-display text-2xl md:text-3xl font-bold text-emerald-pulse">94%</div>
+                        <div class="font-display text-[11px] font-bold text-text-muted mt-1 uppercase tracking-wider">Consistency Rate</div>
+                    </div>
+                    <div class="border-l border-border-subtle pl-4">
+                        <div class="font-display text-2xl md:text-3xl font-bold text-electric-lime">7-DAY</div>
+                        <div class="font-display text-[11px] font-bold text-text-muted mt-1 uppercase tracking-wider">Adaptive Microcycles</div>
+                    </div>
+                </div>
+            </div>
 
-<section class="how-it-works">
-    <h2>How it works</h2>
-    <ol>
-        <li><strong>Assessment</strong> — safety screening, lifestyle, fitness tests, goals, and constraints.</li>
-        <li><strong>Personalized plan</strong> — the right training phase, structure, and exercises for you today.</li>
-        <li><strong>Weekly check-ins</strong> — the plan adapts based on adherence, recovery, and how you feel.</li>
-    </ol>
-</section>
+            <!-- Hero Telemetry Preview Snapshot Right -->
+            <div class="lg:col-span-5 relative">
+                <div class="relative bg-surface-card rounded-2xl border border-border-subtle p-6 shadow-2xl">
+                    <div class="flex items-center justify-between border-b border-border-subtle pb-4 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-8 h-8 rounded bg-surface-slate flex items-center justify-center border border-border-subtle text-electric-lime">
+                                <span class="material-symbols-outlined text-[18px]">fitness_center</span>
+                            </div>
+                            <div>
+                                <div class="font-display font-semibold text-sm text-text-primary">MICROCYCLE // BLOCK 04</div>
+                                <div class="font-display text-[11px] font-bold text-text-muted">STRAIN LOAD: OPTIMAL</div>
+                            </div>
+                        </div>
+                        <span class="bg-emerald-pulse/15 text-emerald-pulse font-display text-[11px] font-bold px-2.5 py-1 rounded border border-emerald-pulse/30">RECOVERED 92%</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 mb-4">
+                        <div class="bg-surface-slate rounded-xl p-3.5 border border-border-subtle">
+                            <span class="font-display text-[10px] font-bold text-text-muted tracking-wider uppercase block">WEEKLY VOLUME</span>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="font-display text-2xl font-bold text-text-primary">18.5</span>
+                                <span class="text-xs text-text-muted">sets/muscle</span>
+                            </div>
+                            <div class="w-full bg-border-subtle h-1.5 rounded-full mt-2.5 overflow-hidden">
+                                <div class="bg-electric-lime h-full rounded-full w-4/5"></div>
+                            </div>
+                        </div>
+                        <div class="bg-surface-slate rounded-xl p-3.5 border border-border-subtle">
+                            <span class="font-display text-[10px] font-bold text-text-muted tracking-wider uppercase block">RESTING HR</span>
+                            <div class="flex items-baseline gap-1 mt-1">
+                                <span class="font-display text-2xl font-bold text-emerald-pulse">54</span>
+                                <span class="text-xs text-text-muted">BPM</span>
+                            </div>
+                            <div class="flex items-center gap-1 text-[11px] text-emerald-pulse mt-2">
+                                <span class="material-symbols-outlined text-sm">trending_down</span>
+                                <span>-3 bpm baseline</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-3.5 rounded-xl bg-surface-slate/60 border border-border-subtle space-y-2">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-semibold text-text-primary">Today's Focus: Push Hypertrophy</span>
+                            <span class="text-electric-lime font-display font-bold text-[11px]">4 EXERCISES</span>
+                        </div>
+                        <p class="text-xs text-text-muted">Incline DB Press, Dips, Overhead Triceps, Lateral Cable Raises</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Architecture -->
+    <section class="space-y-8">
+        <div class="text-center max-w-xl mx-auto space-y-2">
+            <span class="font-display text-[11px] font-bold text-electric-lime uppercase tracking-widest">CLOSED-LOOP SYSTEM</span>
+            <h2 class="font-display text-3xl font-bold uppercase tracking-tight text-text-primary">HOW KINETIC OPERATES</h2>
+            <p class="text-text-secondary text-sm">A rigorous scientific feedback loop designed to prevent plateaus and burnout.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Step 1 -->
+            <div class="bg-surface-card border border-border-subtle rounded-xl p-6 relative overflow-hidden group hover:border-electric-lime/50 transition-colors">
+                <div class="text-electric-lime font-display text-3xl font-bold opacity-30 mb-2">01</div>
+                <h3 class="font-display text-lg font-bold text-text-primary mb-2 uppercase">Safety & Baseline Assessment</h3>
+                <p class="text-text-secondary text-sm leading-relaxed">
+                    PAR-Q screening, lifestyle demands, available training days, equipment constraints, and target adaptation phase.
+                </p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-surface-card border border-border-subtle rounded-xl p-6 relative overflow-hidden group hover:border-electric-lime/50 transition-colors">
+                <div class="text-electric-lime font-display text-3xl font-bold opacity-30 mb-2">02</div>
+                <h3 class="font-display text-lg font-bold text-text-primary mb-2 uppercase">Dynamic Microcycle Generation</h3>
+                <p class="text-text-secondary text-sm leading-relaxed">
+                    Custom split volume, target sets, reps, and RPE prescription tailored to your athletic tier and available equipment.
+                </p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-surface-card border border-border-subtle rounded-xl p-6 relative overflow-hidden group hover:border-electric-lime/50 transition-colors">
+                <div class="text-electric-lime font-display text-3xl font-bold opacity-30 mb-2">03</div>
+                <h3 class="font-display text-lg font-bold text-text-primary mb-2 uppercase">Weekly Autoregulation</h3>
+                <p class="text-text-secondary text-sm leading-relaxed">
+                    Weekly biofeedback check-in on fatigue, soreness, heart rate, and adherence auto-modulates intensity or triggers recovery weeks.
+                </p>
+            </div>
+        </div>
+    </section>
+</div>
 {% endblock %}

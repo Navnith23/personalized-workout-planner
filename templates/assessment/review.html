@@ -1,35 +1,48 @@
 {% extends "base/base.html" %}
-{% block title %}Review your assessment{% endblock %}
+{% block title %}Review & Blueprint Generation — Kinetic{% endblock %}
 {% block content %}
-<section class="wizard">
-    <h1>Review & generate your plan</h1>
-    <p>Here's a summary of what you told us. If anything looks wrong, go back and update it before generating your plan.</p>
+<div class="py-6 flex justify-center">
+    <section class="wizard w-full max-w-2xl">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-electric-lime animate-pulse"></span>
+            <span class="font-display text-xs font-bold text-electric-lime tracking-widest uppercase">AUDIT STAGE // CALIBRATION READY</span>
+        </div>
+        <h1 class="font-display text-2xl md:text-3xl font-bold uppercase tracking-tight text-text-primary mb-2">
+            Review & Generate Your Plan
+        </h1>
+        <p class="text-xs md:text-sm text-text-secondary mb-6">
+            Verify your athletic parameters below. Once generated, your initial microcycle protocol will be dynamically tailored to your available days and equipment.
+        </p>
 
-    <div class="review-grid">
-        <div class="review-card">
-            <h3>Goals</h3>
-            <p>Primary: {{ assessment.get_primary_goal_display|default:"—" }}</p>
+        <div class="review-grid">
+            <div class="review-card">
+                <h3>Primary Objective</h3>
+                <p class="font-display font-semibold text-text-primary">{{ assessment.get_primary_goal_display|default:"—" }}</p>
+            </div>
+            <div class="review-card">
+                <h3>Training Background</h3>
+                <p class="font-display font-semibold text-text-primary">{{ assessment.get_training_experience_display|default:"—" }}</p>
+                <p class="text-xs text-text-muted mt-1">Last trained: {{ assessment.get_time_since_last_trained_display|default:"—" }}</p>
+            </div>
+            <div class="review-card">
+                <h3>Lifestyle Demand</h3>
+                <p class="font-display font-semibold text-text-primary">{{ assessment.get_daily_activity_level_display|default:"—" }}</p>
+                <p class="text-xs text-text-muted mt-1">Sedentary: {{ assessment.sedentary_hours_per_day|default:"—" }} hrs/day</p>
+            </div>
+            <div class="review-card">
+                <h3>Time & Equipment</h3>
+                <p class="font-display font-semibold text-text-primary">{{ assessment.days_per_week_available|default:"—" }} days/wk · {{ assessment.minutes_per_session|default:"—" }} min</p>
+                <p class="text-xs text-text-muted mt-1">Location: {{ assessment.get_training_location_display|default:"—" }}</p>
+            </div>
         </div>
-        <div class="review-card">
-            <h3>Experience</h3>
-            <p>{{ assessment.get_training_experience_display|default:"—" }}</p>
-            <p>Last trained: {{ assessment.get_time_since_last_trained_display|default:"—" }}</p>
-        </div>
-        <div class="review-card">
-            <h3>Lifestyle</h3>
-            <p>Activity level: {{ assessment.get_daily_activity_level_display|default:"—" }}</p>
-            <p>Sedentary hours/day: {{ assessment.sedentary_hours_per_day|default:"—" }}</p>
-        </div>
-        <div class="review-card">
-            <h3>Constraints</h3>
-            <p>{{ assessment.days_per_week_available|default:"—" }} days/week, {{ assessment.minutes_per_session|default:"—" }} min/session</p>
-            <p>Location: {{ assessment.get_training_location_display|default:"—" }}</p>
-        </div>
-    </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">Generate my plan</button>
-    </form>
-</section>
+        <form method="post" class="mt-6 pt-4 border-t border-border-subtle">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary w-full py-3.5 text-base flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-xl">bolt</span>
+                <span>Generate Adaptive Plan</span>
+            </button>
+        </form>
+    </section>
+</div>
 {% endblock %}

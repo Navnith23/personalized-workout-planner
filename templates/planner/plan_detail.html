@@ -1,49 +1,244 @@
 {% extends "base/base.html" %}
-{% block title %}Your Plan{% endblock %}
+{% block title %}{{ program.name }} — Kinetic Blueprint{% endblock %}
 {% block content %}
-<section class="plan">
-    <h1>{{ program.name }}</h1>
-    <p class="plan-meta">
-        Week {{ program.week_number }} of {{ program.duration_weeks }} ·
-        Goal: {{ program.get_goal_display|default:program.goal }} ·
-        {{ program.days_per_week }} training days/week
-    </p>
-
-    <div class="plan-actions">
-        <a class="btn" href="{% url 'progress:checkin' %}">Submit weekly check-in</a>
+<div class="space-y-8 py-4">
+    <!-- Breadcrumbs / Top Status -->
+    <div class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-2 text-text-muted font-display text-[11px] font-bold uppercase tracking-wider">
+            <span>PROGRAM BLUEPRINT</span>
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+            <span class="text-text-secondary">WEEK {{ program.week_number }}</span>
+            <span class="material-symbols-outlined text-sm">chevron_right</span>
+            <span class="text-electric-lime">{{ program.get_goal_display|default:program.goal }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-card border border-border-subtle text-text-secondary font-display text-[11px] font-bold uppercase">
+                <span class="w-2 h-2 rounded-full bg-emerald-pulse animate-pulse"></span>
+                ACTIVE ATHLETE ENGINE
+            </span>
+        </div>
     </div>
 
-    <div class="week-grid">
-        {% for day in days %}
-            <div class="day-card day-type-{{ day.day_type }}">
-                <h3>{{ day.label }}</h3>
-                {% if day.day_type == 'rest' %}
-                    <p class="rest-note">Rest day. Recovery is part of the plan.</p>
-                {% else %}
-                    <ul class="workout-list">
-                        {% for w in day.workouts.all %}
-                            <li class="section-{{ w.section }}">
-                                <span class="ex-name">{{ w.exercise.name }}</span>
-                                <span class="ex-detail">
-                                    {{ w.sets }}x{% if w.reps %}{{ w.reps }}{% else %}{{ w.duration_seconds }}s{% endif %}
-                                    {% if w.rest_seconds %}· rest {{ w.rest_seconds }}s{% endif %}
-                                </span>
-                                {% if w.intensity_target %}<span class="ex-intensity">{{ w.intensity_target }}</span>{% endif %}
-                            </li>
-                        {% endfor %}
-                    </ul>
-                    <form method="post" action="{% url 'programs:log_workout' day.id %}" class="log-form">
-                        {% csrf_token %}
-                        {% if day.id in logged_day_ids %}
-                            <span class="logged-badge">✓ Logged complete</span>
-                        {% else %}
-                            <button type="submit" name="completed" value="true" class="btn btn-small">Mark complete</button>
-                            <button type="submit" name="completed" value="false" class="btn btn-small btn-muted">Skip</button>
-                        {% endif %}
-                    </form>
-                {% endif %}
+    <!-- Hero Program Header -->
+    <section class="bg-surface-card border border-border-subtle rounded-2xl p-6 lg:p-8 relative overflow-hidden shadow-xl">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-electric-lime/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div class="space-y-4 max-w-3xl">
+                <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2.5 py-1 rounded bg-electric-lime text-surface-obsidian font-display text-[11px] font-bold tracking-wider uppercase">
+                        CYCLE PROTOCOL
+                    </span>
+                    <span class="px-2.5 py-1 rounded bg-surface-slate border border-border-subtle text-text-secondary font-display text-[11px] uppercase">
+                        {{ program.phase|upper }} MESOCYCLE
+                    </span>
+                </div>
+                <h1 class="font-display text-2xl lg:text-3xl font-bold uppercase tracking-tight text-text-primary">
+                    {{ program.name }}
+                </h1>
+                
+                <!-- Telemetry Meta Badges -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                    <div class="bg-surface-slate/80 border border-border-subtle rounded-xl p-3 flex flex-col">
+                        <span class="text-text-muted font-display text-[10px] font-bold uppercase tracking-wider">PROGRESSION</span>
+                        <span class="font-display text-lg text-text-primary font-bold">Week {{ program.week_number }} of {{ program.duration_weeks }}</span>
+                        <span class="text-[11px] text-text-secondary mt-0.5">Active Cycle</span>
+                    </div>
+                    <div class="bg-surface-slate/80 border border-border-subtle rounded-xl p-3 flex flex-col">
+                        <span class="text-text-muted font-display text-[10px] font-bold uppercase tracking-wider">PRIMARY TARGET</span>
+                        <span class="font-display text-lg text-text-primary font-bold">{{ program.get_goal_display|default:program.goal }}</span>
+                        <span class="text-[11px] text-text-secondary mt-0.5">Hypertrophy & Strength</span>
+                    </div>
+                    <div class="bg-surface-slate/80 border border-border-subtle rounded-xl p-3 flex flex-col">
+                        <span class="text-text-muted font-display text-[10px] font-bold uppercase tracking-wider">FREQUENCY</span>
+                        <span class="font-display text-lg text-text-primary font-bold">{{ program.days_per_week }} Days / Wk</span>
+                        <span class="text-[11px] text-text-secondary mt-0.5">{{ 7|add:"-1" }} Recovery & Rest</span>
+                    </div>
+                    <div class="bg-surface-slate/80 border border-border-subtle rounded-xl p-3 flex flex-col">
+                        <span class="text-text-muted font-display text-[10px] font-bold uppercase tracking-wider">LOGGED DAYS</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="font-display text-lg text-emerald-pulse font-bold">{{ logged_day_ids|length }} Done</span>
+                            <span class="material-symbols-outlined text-emerald-pulse text-base">check_circle</span>
+                        </div>
+                        <span class="text-[11px] text-emerald-pulse/80 mt-0.5">This Microcycle</span>
+                    </div>
+                </div>
             </div>
-        {% endfor %}
-    </div>
-</section>
+
+            <!-- Header Action Button -->
+            <div class="shrink-0 flex flex-col gap-3 lg:w-60">
+                <a class="btn btn-primary w-full py-3 text-center flex items-center justify-center gap-2" href="{% url 'progress:checkin' %}">
+                    <span class="material-symbols-outlined text-base">fact_check</span>
+                    <span>Submit Check-in</span>
+                </a>
+                <a class="btn w-full py-3 text-center flex items-center justify-center gap-2" href="{% url 'progress_history:history' %}">
+                    <span class="material-symbols-outlined text-base">monitoring</span>
+                    <span>Telemetry History</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Schedule Quick Strip -->
+    <section class="bg-surface-card border border-border-subtle rounded-2xl p-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 gap-2 border-b border-border-subtle">
+            <div class="flex items-center gap-3">
+                <div class="p-2 rounded-lg bg-surface-slate border border-border-subtle text-electric-lime">
+                    <span class="material-symbols-outlined">calendar_today</span>
+                </div>
+                <div>
+                    <h2 class="font-display text-lg text-text-primary uppercase tracking-tight font-bold">Microcycle Schedule</h2>
+                    <p class="text-text-muted text-xs">Week {{ program.week_number }} Structured Blueprint</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-display">
+                <div class="flex items-center gap-1.5 text-text-secondary">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-pulse"></span>
+                    <span>Completed</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-text-secondary">
+                    <span class="w-2.5 h-2.5 rounded-full bg-electric-lime"></span>
+                    <span>Active Plan</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-text-secondary">
+                    <span class="w-2.5 h-2.5 rounded-full bg-border-active"></span>
+                    <span>Rest / Off</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Horizontal Microcycle Badges -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2.5 pt-4">
+            {% for day in days %}
+                <div class="p-3 rounded-xl border flex flex-col items-center text-center transition-all {% if day.id in logged_day_ids %}bg-surface-slate/60 border-emerald-pulse/40{% elif day.day_type == 'rest' %}bg-surface-slate/30 border-border-subtle opacity-75{% else %}bg-surface-slate/80 border-border-active hover:border-electric-lime{% endif %}">
+                    <span class="text-text-muted font-display text-[10px] font-bold uppercase tracking-wider">{{ day.label|slice:":6" }}</span>
+                    <span class="font-display text-sm text-text-primary font-bold mt-1 truncate max-w-full">
+                        {% if day.day_type == 'rest' %}Rest{% else %}Training{% endif %}
+                    </span>
+                    <div class="mt-2 flex items-center gap-1 font-display text-[10px] font-bold">
+                        {% if day.id in logged_day_ids %}
+                            <span class="text-emerald-pulse flex items-center gap-0.5">
+                                <span class="material-symbols-outlined text-xs">check_circle</span> DONE
+                            </span>
+                        {% elif day.day_type == 'rest' %}
+                            <span class="text-text-muted">RECOVER</span>
+                        {% else %}
+                            <span class="text-electric-lime">READY</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Detailed Daily Protocols -->
+    <section class="space-y-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-electric-lime">splitscreen</span>
+                <h2 class="font-display text-xl font-bold uppercase tracking-tight text-text-primary">Daily Protocols</h2>
+            </div>
+            <span class="text-text-muted font-display text-xs uppercase tracking-wider">{{ days|length }} Protocol Days</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% for day in days %}
+                <article class="bg-surface-card border rounded-2xl overflow-hidden transition-all shadow-md {% if day.id in logged_day_ids %}border-emerald-pulse/40 bg-surface-card/95{% elif day.day_type == 'rest' %}border-border-subtle bg-surface-card/70{% else %}border-border-active hover:border-electric-lime/80{% endif %}">
+                    <!-- Top Accent Strip -->
+                    <div class="h-1.5 w-full {% if day.id in logged_day_ids %}bg-emerald-pulse{% elif day.day_type == 'rest' %}bg-border-subtle{% else %}bg-electric-lime{% endif %}"></div>
+                    
+                    <div class="p-6 space-y-4">
+                        <div class="flex items-start justify-between gap-4 pb-3 border-b border-border-subtle">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    {% if day.id in logged_day_ids %}
+                                        <span class="px-2 py-0.5 rounded bg-emerald-pulse/20 text-emerald-pulse border border-emerald-pulse/30 font-display text-[10px] font-bold uppercase flex items-center gap-1">
+                                            <span class="material-symbols-outlined text-xs">check_circle</span> Complete
+                                        </span>
+                                    {% elif day.day_type == 'rest' %}
+                                        <span class="px-2 py-0.5 rounded bg-surface-slate text-text-muted border border-border-subtle font-display text-[10px] font-bold uppercase">
+                                            Rest & Deload
+                                        </span>
+                                    {% else %}
+                                        <span class="px-2 py-0.5 rounded bg-electric-lime text-surface-obsidian font-display text-[10px] font-bold uppercase">
+                                            Active Protocol
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                <h3 class="font-display text-lg font-bold text-text-primary">
+                                    {{ day.label }}
+                                </h3>
+                            </div>
+
+                            {% if day.day_type != 'rest' %}
+                                <form method="post" action="{% url 'programs:log_workout' day.id %}" class="flex items-center gap-2">
+                                    {% csrf_token %}
+                                    {% if day.id in logged_day_ids %}
+                                        <button type="submit" name="completed" value="false" class="btn btn-muted btn-small" title="Change status to skipped/uncompleted">
+                                            Unmark
+                                        </button>
+                                    {% else %}
+                                        <button type="submit" name="completed" value="true" class="btn btn-primary btn-small">
+                                            <span class="material-symbols-outlined text-sm font-bold">check</span> Complete
+                                        </button>
+                                        <button type="submit" name="completed" value="false" class="btn btn-muted btn-small">
+                                            Skip
+                                        </button>
+                                    {% endif %}
+                                </form>
+                            {% endif %}
+                        </div>
+
+                        {% if day.day_type == 'rest' %}
+                            <div class="p-4 rounded-xl bg-surface-slate/50 border border-border-subtle text-center space-y-2">
+                                <span class="material-symbols-outlined text-3xl text-text-muted">bedtime</span>
+                                <p class="text-text-secondary text-sm">System Recovery & Neural Deload</p>
+                                <p class="text-text-muted text-xs">Adequate sleep, hydration, and nutritional surplus support muscular adaptation.</p>
+                            </div>
+                        {% else %}
+                            <div class="space-y-3">
+                                {% for w in day.workouts.all %}
+                                    <div class="p-3.5 rounded-xl bg-surface-slate/70 border border-border-subtle hover:border-border-active transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <div class="space-y-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="w-5 h-5 rounded bg-surface-obsidian border border-border-subtle flex items-center justify-center font-display text-[10px] text-electric-lime font-bold">
+                                                    {{ forloop.counter }}
+                                                </span>
+                                                <span class="font-display font-semibold text-text-primary text-sm">{{ w.exercise.name }}</span>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-2 pl-7">
+                                                <span class="px-2 py-0.5 rounded bg-surface-obsidian text-text-muted border border-border-subtle text-[10px] font-display uppercase">
+                                                    {{ w.section|upper }}
+                                                </span>
+                                                {% if w.intensity_target %}
+                                                    <span class="px-2 py-0.5 rounded bg-surface-obsidian text-electric-lime border border-border-subtle text-[10px] font-display uppercase font-semibold">
+                                                        {{ w.intensity_target }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-2 sm:justify-end pl-7 sm:pl-0">
+                                            <div class="px-2.5 py-1 rounded bg-surface-obsidian border border-border-subtle text-center">
+                                                <span class="block text-[9px] text-text-muted font-display uppercase">Target</span>
+                                                <span class="font-display text-xs text-text-primary font-bold">
+                                                    {{ w.sets }}x{% if w.reps %}{{ w.reps }}{% else %}{{ w.duration_seconds }}s{% endif %}
+                                                </span>
+                                            </div>
+                                            {% if w.rest_seconds %}
+                                                <div class="px-2.5 py-1 rounded bg-surface-obsidian border border-border-subtle text-center">
+                                                    <span class="block text-[9px] text-text-muted font-display uppercase">Rest</span>
+                                                    <span class="font-display text-xs text-text-secondary font-bold">{{ w.rest_seconds }}s</span>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</div>
 {% endblock %}

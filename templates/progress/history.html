@@ -1,40 +1,152 @@
 {% extends "base/base.html" %}
-{% block title %}Your Progress{% endblock %}
+{% block title %}Athletic Telemetry & Microcycle History — Kinetic{% endblock %}
 {% block content %}
-<section class="plan">
-    <h1>Your Progress</h1>
+<div class="space-y-8 py-4">
+    <!-- Header Block -->
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-border-subtle">
+        <div class="space-y-2">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-bold bg-surface-card border border-border-active text-electric-lime">
+                <span class="material-symbols-outlined text-sm">monitoring</span>
+                ATHLETIC TELEMETRY ARCHIVE
+            </div>
+            <h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight text-text-primary uppercase">
+                Progress & Calibration History
+            </h1>
+            <p class="text-text-secondary text-sm">
+                Cumulative historical trendlines of perceived exertion, recovery calibration, and logged sessions.
+            </p>
+        </div>
 
-    <h2>Weekly Check-ins</h2>
-    {% if checkins %}
-        <table class="data-table">
-            <thead>
-                <tr><th>Week</th><th>Completion</th><th>Difficulty</th><th>Recovery</th><th>Action taken</th></tr>
-            </thead>
-            <tbody>
-                {% for c in checkins %}
-                    <tr>
-                        <td>{{ c.week_number }}</td>
-                        <td>{{ c.completion_rate }}%</td>
-                        <td>{{ c.difficulty }}/10</td>
-                        <td>{{ c.recovery }}/10</td>
-                        <td>{{ c.recommendation }}</td>
-                    </tr>
+        <div class="flex items-center gap-3">
+            <a href="{% url 'assessment:dashboard_redirect' %}" class="btn btn-muted">
+                <span class="material-symbols-outlined text-base">splitscreen</span>
+                <span>Active Plan</span>
+            </a>
+            <a href="{% url 'progress:checkin' %}" class="btn btn-primary">
+                <span class="material-symbols-outlined text-base">fact_check</span>
+                <span>Weekly Check-in</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Check-in Calibration Log Table -->
+    <section class="space-y-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-electric-lime">fact_check</span>
+                <h2 class="font-display text-xl font-bold uppercase tracking-tight text-text-primary">Microcycle Calibrations</h2>
+            </div>
+            <span class="text-text-muted font-display text-xs uppercase tracking-wider">{{ checkins|length }} Check-ins Recorded</span>
+        </div>
+
+        {% if checkins %}
+            <div class="overflow-x-auto rounded-2xl border border-border-subtle bg-surface-card shadow-lg">
+                <table class="data-table mb-0">
+                    <thead>
+                        <tr>
+                            <th>Week</th>
+                            <th>Completion</th>
+                            <th>Difficulty (RPE)</th>
+                            <th>Recovery</th>
+                            <th>Heart Rate (Rest/Avg)</th>
+                            <th>Adaptive Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in checkins %}
+                            <tr>
+                                <td class="font-display font-bold text-text-primary">
+                                    <span class="px-2.5 py-1 rounded bg-surface-slate border border-border-subtle">
+                                        Week {{ c.week_number }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-16 bg-surface-slate h-2 rounded-full overflow-hidden border border-border-subtle">
+                                            <div class="bg-emerald-pulse h-full" style="width: {{ c.completion_rate }}%;"></div>
+                                        </div>
+                                        <span class="font-display font-bold text-emerald-pulse text-xs">{{ c.completion_rate }}%</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="font-display font-semibold text-text-primary">{{ c.difficulty }}</span>
+                                    <span class="text-text-muted text-xs">/10</span>
+                                </td>
+                                <td>
+                                    <span class="font-display font-semibold text-emerald-pulse">{{ c.recovery }}</span>
+                                    <span class="text-text-muted text-xs">/10</span>
+                                </td>
+                                <td>
+                                    {% if c.resting_bpm or c.avg_workout_bpm %}
+                                        <span class="text-xs text-text-secondary font-display">
+                                            {{ c.resting_bpm|default:"--" }} / {{ c.avg_workout_bpm|default:"--" }} bpm
+                                        </span>
+                                    {% else %}
+                                        <span class="text-text-muted text-xs">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="px-2 py-0.5 rounded bg-surface-slate text-electric-lime border border-electric-lime/20 font-display text-xs font-semibold uppercase">
+                                        {{ c.recommendation }}
+                                    </span>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="p-8 rounded-2xl bg-surface-card border border-border-subtle text-center space-y-3">
+                <span class="material-symbols-outlined text-4xl text-text-muted">fact_check</span>
+                <p class="text-text-secondary text-sm">No weekly check-ins recorded yet.</p>
+                <a href="{% url 'progress:checkin' %}" class="btn btn-primary inline-flex">Complete Your First Check-in</a>
+            </div>
+        {% endif %}
+    </section>
+
+    <!-- Workout Logs Stream -->
+    <section class="space-y-4 pt-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-electric-lime">history</span>
+                <h2 class="font-display text-xl font-bold uppercase tracking-tight text-text-primary">Recent Workout Logs</h2>
+            </div>
+            <span class="text-text-muted font-display text-xs uppercase tracking-wider">Latest {{ logs|length }} Logs</span>
+        </div>
+
+        {% if logs %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {% for log in logs|slice:":20" %}
+                    <div class="p-4 rounded-xl bg-surface-card border border-border-subtle flex flex-col justify-between space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-display text-[11px] font-bold text-text-muted uppercase">
+                                {{ log.completed_at|date:"M j, Y" }}
+                            </span>
+                            {% if log.completed %}
+                                <span class="px-2 py-0.5 rounded bg-emerald-pulse/15 text-emerald-pulse border border-emerald-pulse/30 font-display text-[10px] font-bold uppercase flex items-center gap-0.5">
+                                    <span class="material-symbols-outlined text-xs">check</span> Completed
+                                </span>
+                            {% else %}
+                                <span class="px-2 py-0.5 rounded bg-coral-burn/15 text-coral-burn border border-coral-burn/30 font-display text-[10px] font-bold uppercase">
+                                    Skipped
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="font-display font-semibold text-text-primary text-sm">
+                            {{ log.day.label }}
+                        </div>
+                        <div class="text-xs text-text-muted truncate">
+                            {{ log.day.program.name }}
+                        </div>
+                    </div>
                 {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No check-ins yet.</p>
-    {% endif %}
-
-    <h2>Recent Workout Logs</h2>
-    {% if logs %}
-        <ul>
-            {% for log in logs|slice:":20" %}
-                <li>{{ log.completed_at|date:"M j, Y" }} — {{ log.day.label }} — {% if log.completed %}Completed{% else %}Skipped{% endif %}</li>
-            {% endfor %}
-        </ul>
-    {% else %}
-        <p>No workouts logged yet.</p>
-    {% endif %}
-</section>
+            </div>
+        {% else %}
+            <div class="p-8 rounded-2xl bg-surface-card border border-border-subtle text-center space-y-2">
+                <span class="material-symbols-outlined text-4xl text-text-muted">timer_off</span>
+                <p class="text-text-secondary text-sm">No workout sessions logged yet. Check your current plan to start logging.</p>
+            </div>
+        {% endif %}
+    </section>
+</div>
 {% endblock %}

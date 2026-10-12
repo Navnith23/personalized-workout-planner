@@ -1,24 +1,38 @@
 {% extends "base/base.html" %}
-{% block title %}Please check with a professional first{% endblock %}
+{% block title %}Medical Advisory Precaution — Kinetic{% endblock %}
 {% block content %}
-<section class="form-card blocked-card">
-    <h1>Let's get a professional opinion first</h1>
-    <p>
-        Based on your safety screening, we're not going to generate an unrestricted exercise
-        plan right now. This isn't a diagnosis — it's just a precaution, because some of what
-        you shared (listed below) is worth discussing with a doctor or qualified health
-        professional before starting or changing an exercise routine.
-    </p>
-    <ul>
-        {% for flag in assessment.safety_flags %}
-            <li>{{ flag }}</li>
-        {% endfor %}
-    </ul>
-    <p>
-        Once you've been cleared, come back and we'll build your plan. In the meantime,
-        gentle daily movement you're already comfortable with (like short walks) is
-        generally reasonable — but please confirm with your provider first.
-    </p>
-    <a class="btn" href="{% url 'landing' %}">Back to home</a>
-</section>
+<div class="py-10 flex justify-center">
+    <section class="form-card blocked-card w-full max-w-xl text-left space-y-4">
+        <div class="flex items-center gap-3 pb-3 border-b border-coral-burn/30">
+            <div class="w-10 h-10 rounded-xl bg-coral-burn/15 border border-coral-burn/30 text-coral-burn flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-2xl">medical_services</span>
+            </div>
+            <div>
+                <span class="font-display text-[10px] font-bold text-coral-burn uppercase tracking-wider">SAFETY PROTOCOL HALT</span>
+                <h1 class="font-display text-xl font-bold uppercase text-text-primary">Professional Consultation Recommended</h1>
+            </div>
+        </div>
+
+        <p class="text-xs text-text-secondary leading-relaxed">
+            Based on your safety screening answers, our automated engine will not generate an unrestricted exercise program at this time. This is not a diagnosis — it is an evidence-based precaution, because some of your reported responses indicate conditions that warrant discussion with a healthcare provider.
+        </p>
+
+        <div class="p-4 rounded-xl bg-surface-slate/80 border border-coral-burn/20 space-y-2">
+            <span class="font-display text-xs font-bold text-coral-burn uppercase tracking-wider block">Flagged Safety Indicators:</span>
+            <ul class="list-disc list-inside text-xs text-text-secondary space-y-1">
+                {% for flag in assessment.safety_flags %}
+                    <li>{{ flag }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <p class="text-xs text-text-muted leading-relaxed">
+            Once you have received clearance from your physician or qualified physical therapist, you may return and proceed with your assessment. In the meantime, gentle low-impact walking that you are already accustomed to is generally safe unless contraindicated.
+        </p>
+
+        <div class="pt-4 border-t border-border-subtle">
+            <a class="btn btn-muted w-full" href="{% url 'landing' %}">Return to Home</a>
+        </div>
+    </section>
+</div>
 {% endblock %}

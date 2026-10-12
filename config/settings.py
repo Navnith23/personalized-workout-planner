@@ -34,13 +34,13 @@ if not _raw_secret:
     _raw_secret = 'dev-only-secret-key-do-not-use-in-production-!!!'
 SECRET_KEY = _raw_secret
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'False').strip().lower() in ('true', '1', 'yes')
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').strip().lower() in ('true', '1', 'yes')
 
 _raw_hosts = os.environ.get('DJANGO_ALLOWED_HOSTS', '')
 ALLOWED_HOSTS = (
     [h.strip() for h in _raw_hosts.split(',') if h.strip()]
     if _raw_hosts
-    else ['localhost', '127.0.0.1', 'navnith23.pythonanywhere.com']
+    else ['localhost', '127.0.0.1', 'testserver', 'navnith23.pythonanywhere.com']
 )
 
 # HTTPS / cookie security — always on in production, off in local dev

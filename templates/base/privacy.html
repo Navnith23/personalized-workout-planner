@@ -1,33 +1,45 @@
 {% extends "base/base.html" %}
-{% block title %}Privacy Policy — Fitness Planner{% endblock %}
+{% block title %}Privacy Architecture & Telemetry Security — Kinetic{% endblock %}
 {% block content %}
-<article class="prose">
-    <h1>Privacy Policy</h1>
-    <p><em>Last updated: October 2026</em></p>
+<div class="py-6 flex justify-center">
+    <article class="prose w-full">
+        <div class="flex items-center gap-2 mb-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-pulse"></span>
+            <span class="font-display text-xs font-bold text-emerald-pulse tracking-widest uppercase">SECURITY & TELEMETRY PROTOCOL</span>
+        </div>
+        <h1 class="font-display font-bold uppercase tracking-tight">Privacy Policy</h1>
+        <p class="text-text-muted text-xs"><em>Last updated: October 2026 // Kinetic Sync v3.4</em></p>
 
-    <h2>What we collect</h2>
-    <p>To generate your personalized fitness plan we collect:</p>
-    <ul>
-        <li>Basic personal information (age, sex, height, weight) — used only to compute BMI and contextualize your plan.</li>
-        <li>Health screening answers (yes/no questions about symptoms, injuries, medical conditions).</li>
-        <li>Fitness test results and training history.</li>
-        <li>Weekly check-in data (sessions completed, perceived difficulty, recovery).</li>
-    </ul>
+        <h2>1. Data Collection Scope</h2>
+        <p>To calibrate personalized athletic programs and autoregulated microcycles, we collect:</p>
+        <ul>
+            <li><strong>Biometric Markers:</strong> Age, biological sex, height, weight — utilized exclusively to compute baseline energy expenditure and contextualize volume recommendations.</li>
+            <li><strong>Safety & Health Screening:</strong> PAR-Q screening inputs (joint symptoms, cardiovascular history, previous musculoskeletal injuries).</li>
+            <li><strong>Athletic Capacity & Training History:</strong> Fitness test benchmarks, training background, and equipment availability.</li>
+            <li><strong>Weekly Biofeedback & Telemetry:</strong> Perceived session difficulty (RPE), energy levels, systemic recovery scores, and optional heart rate metrics (resting and workout bpm).</li>
+        </ul>
 
-    <h2>How we use it</h2>
-    <ul>
-        <li>All data is used exclusively to generate and adapt your fitness plan.</li>
-        <li>We do not sell, share, or disclose your health data to third parties.</li>
-        <li>Data is stored on PythonAnywhere servers. Database files are not publicly accessible.</li>
-    </ul>
+        <h2>2. Use of Telemetry Data</h2>
+        <ul>
+            <li>All personal telemetry is utilized solely to calibrate and adjust your training volume, exercise selection, and microcycle progression.</li>
+            <li>We do not sell, rent, or share personal or health metrics with third-party advertising networks.</li>
+            <li>All data is securely encrypted in transit and stored in protected databases.</li>
+        </ul>
 
-    <h2>Health data disclaimer</h2>
-    <p>This planner provides general fitness guidance and is <strong>not</strong> a substitute for professional medical advice, diagnosis, or treatment. If you have a health condition, consult a qualified healthcare professional before starting any exercise programme.</p>
+        <h2>3. Medical Advisory Disclaimer</h2>
+        <p>
+            KINETIC//SYNC provides structured athletic conditioning and strength guidance. It is <strong>not</strong> a medical device, diagnosis tool, or substitute for individualized clinical consultation. Athletes with pre-existing conditions must consult a physician prior to starting or modifying physical exertion protocols.
+        </p>
 
-    <h2>Data retention</h2>
-    <p>Your data is retained for as long as your account is active. You may request deletion of your account and all associated data by contacting the site administrator.</p>
+        <h2>4. Data Retention & Athlete Rights</h2>
+        <p>
+            Your account and telemetry records are maintained for the duration of your athletic membership. You may export or permanently delete your profile and all historical logs at any time via your account settings.
+        </p>
 
-    <h2>Contact</h2>
-    <p>For data requests or privacy concerns, contact the site administrator via PythonAnywhere.</p>
-</article>
+        <div class="mt-8 pt-6 border-t border-border-subtle flex justify-between items-center">
+            <a href="{% url 'landing' %}" class="btn btn-muted">Return to Home</a>
+            <span class="font-display text-[11px] text-text-muted uppercase">END PROTOCOL 2026</span>
+        </div>
+    </article>
+</div>
 {% endblock %}

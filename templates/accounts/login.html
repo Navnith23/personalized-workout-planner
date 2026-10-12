@@ -1,21 +1,43 @@
 {% extends "base/base.html" %}
-{% block title %}Log in{% endblock %}
+{% block title %}Athletic Authentication — Kinetic{% endblock %}
 {% block content %}
-<section class="form-card">
-    <h1>Log in</h1>
-    <form method="post" novalidate>
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        {% for field in form %}
-            <div class="field">
-                {{ field.label_tag }}
-                {{ field }}
-                {{ field.errors }}
+<div class="py-10 flex justify-center">
+    <section class="form-card w-full max-w-md">
+        <div class="mb-6 text-center space-y-1">
+            <div class="w-10 h-10 rounded-xl bg-electric-lime/10 border border-electric-lime/30 text-electric-lime flex items-center justify-center mx-auto mb-3">
+                <span class="material-symbols-outlined text-2xl">lock</span>
             </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Log in</button>
-    </form>
-    <p>New here? <a href="{% url 'accounts:signup' %}">Create an account</a></p>
-    <p><a href="{% url 'accounts:password_reset' %}">Forgot your password?</a></p>
-</section>
+            <h1 class="font-display text-2xl font-bold uppercase tracking-tight text-text-primary">Athletic Log In</h1>
+            <p class="text-xs text-text-secondary">Enter credentials to resume your adaptive microcycle.</p>
+        </div>
+
+        <form method="post" novalidate class="space-y-4">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="p-3 rounded-lg bg-coral-burn/15 border border-coral-burn/30 text-coral-burn text-xs font-semibold">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            {% for field in form %}
+                <div class="field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn btn-primary w-full py-3 mt-2">
+                <span class="material-symbols-outlined text-base">login</span>
+                <span>Log In</span>
+            </button>
+        </form>
+
+        <div class="mt-6 pt-6 border-t border-border-subtle text-center space-y-2 text-xs">
+            <p class="text-text-muted">New athlete? <a href="{% url 'accounts:signup' %}" class="text-electric-lime font-bold hover:underline">Create an account</a></p>
+            <p><a href="{% url 'accounts:password_reset' %}" class="text-text-secondary hover:text-text-primary">Forgot your password?</a></p>
+        </div>
+    </section>
+</div>
 {% endblock %}

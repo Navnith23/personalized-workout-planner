@@ -1,21 +1,246 @@
 {% extends "base/base.html" %}
-{% block title %}Weekly Check-in{% endblock %}
+{% block title %}Weekly Check-in Calibration — Week {{ program.week_number }}{% endblock %}
 {% block content %}
-<section class="wizard">
-    <h1>Weekly Check-in — Week {{ program.week_number }}</h1>
-    <p>A few quick questions so we can adjust next week's plan appropriately.</p>
-
-    <form method="post" novalidate class="assessment-form">
-        {% csrf_token %}
-        {{ form.non_field_errors }}
-        {% for field in form %}
-            <div class="field">
-                {{ field.label_tag }}
-                {{ field }}
-                {{ field.errors }}
+<div class="max-w-4xl mx-auto space-y-8 py-4">
+    <!-- Header Block -->
+    <header class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-border-subtle">
+        <div class="space-y-2">
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-bold bg-surface-card border border-border-active text-electric-lime">
+                    <span class="w-2 h-2 rounded-full bg-electric-lime animate-pulse"></span>
+                    CYCLE {{ program.week_number }} // BIOFEEDBACK CALIBRATION
+                </span>
+                <span class="text-text-muted text-xs font-display tracking-wider uppercase">{{ program.name }}</span>
             </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Submit check-in</button>
-    </form>
-</section>
+            <h1 class="font-display text-2xl md:text-3xl font-bold tracking-tight text-text-primary uppercase">
+                Weekly Check-in — Week {{ program.week_number }}
+            </h1>
+            <p class="text-text-secondary text-sm">
+                Fine-tuning your next microcycle based on biofeedback, perceived exertion, and recovery markers.
+            </p>
+        </div>
+
+        <div class="flex items-center gap-3 bg-surface-card border border-border-subtle px-4 py-3 rounded-2xl shrink-0">
+            <div class="text-right">
+                <div class="text-[10px] font-display font-bold text-text-muted uppercase">TRAINING PHASE</div>
+                <div class="font-display text-sm font-bold text-emerald-pulse uppercase">{{ program.phase }}</div>
+            </div>
+            <div class="w-9 h-9 rounded-xl bg-surface-slate border border-border-active flex items-center justify-center text-emerald-pulse">
+                <span class="material-symbols-outlined text-xl">tune</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Live Adaptive Preview Pill -->
+    <section class="bg-surface-card border-2 border-electric-lime/50 p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative overflow-hidden shadow-lg">
+        <div class="absolute -right-12 -top-12 w-40 h-40 bg-electric-lime/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex items-center gap-3 z-10">
+            <div class="w-10 h-10 rounded-xl bg-electric-lime/20 border border-electric-lime/40 flex items-center justify-center text-electric-lime shrink-0">
+                <span class="material-symbols-outlined text-2xl">neurology</span>
+            </div>
+            <div>
+                <div class="text-[11px] font-display font-bold text-electric-lime tracking-wider flex items-center gap-2 uppercase">
+                    <span>LIVE ADAPTIVE ENGINE</span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-electric-lime animate-ping"></span>
+                </div>
+                <div class="font-display text-sm md:text-base text-text-primary font-bold mt-0.5" id="engineStatusPreview">
+                    Dynamic Progression: Adjusts volume & intensity based on your ratings
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0 z-10">
+            <span class="px-2.5 py-1 rounded bg-surface-obsidian text-emerald-pulse font-display text-[10px] font-bold border border-border-subtle uppercase">
+                CALIBRATION ACTIVE
+            </span>
+        </div>
+    </section>
+
+    <!-- Form Container -->
+    <div class="bg-surface-card border border-border-subtle rounded-2xl p-6 lg:p-8 shadow-xl relative">
+        <form method="post" novalidate class="space-y-6">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div class="p-4 rounded-xl bg-coral-burn/15 border border-coral-burn/30 text-coral-burn text-sm">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <!-- Grid 1: Adherence -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 p-4 rounded-xl bg-surface-slate/40 border border-border-subtle">
+                <div class="field mb-0">
+                    <label for="{{ form.planned_sessions.id_for_label }}" class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-electric-lime">event_available</span>
+                        <span>Planned Sessions This Week</span>
+                    </label>
+                    {{ form.planned_sessions }}
+                    {{ form.planned_sessions.errors }}
+                </div>
+                <div class="field mb-0">
+                    <label for="{{ form.completed_sessions.id_for_label }}" class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-emerald-pulse">check_circle</span>
+                        <span>Completed Sessions</span>
+                    </label>
+                    {{ form.completed_sessions }}
+                    {{ form.completed_sessions.errors }}
+                </div>
+            </div>
+
+            <!-- Grid 2: Biofeedback Sliders (1-10) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="field p-4 rounded-xl bg-surface-slate/40 border border-border-subtle mb-0">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="{{ form.difficulty.id_for_label }}" class="mb-0">Perceived Difficulty (1-10)</label>
+                        <span class="font-display font-bold text-electric-lime text-sm" id="diffVal">--</span>
+                    </div>
+                    <p class="text-xs text-text-muted mb-2">1 = Very Easy, 10 = Max Effort / Near Failure</p>
+                    {{ form.difficulty }}
+                    {{ form.difficulty.errors }}
+                </div>
+
+                <div class="field p-4 rounded-xl bg-surface-slate/40 border border-border-subtle mb-0">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="{{ form.energy.id_for_label }}" class="mb-0">Energy Levels (1-10)</label>
+                        <span class="font-display font-bold text-emerald-pulse text-sm" id="energyVal">--</span>
+                    </div>
+                    <p class="text-xs text-text-muted mb-2">1 = Completely Drained, 10 = High Energy</p>
+                    {{ form.energy }}
+                    {{ form.energy.errors }}
+                </div>
+
+                <div class="field p-4 rounded-xl bg-surface-slate/40 border border-border-subtle mb-0">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="{{ form.recovery.id_for_label }}" class="mb-0">Systemic Recovery (1-10)</label>
+                        <span class="font-display font-bold text-emerald-pulse text-sm" id="recovVal">--</span>
+                    </div>
+                    <p class="text-xs text-text-muted mb-2">1 = Extreme Fatigue / Muscle Soreness, 10 = Fully Primed</p>
+                    {{ form.recovery }}
+                    {{ form.recovery.errors }}
+                </div>
+
+                <div class="field p-4 rounded-xl bg-surface-slate/40 border border-border-subtle mb-0">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="{{ form.enjoyment.id_for_label }}" class="mb-0">Session Enjoyment (1-10)</label>
+                        <span class="font-display font-bold text-text-primary text-sm" id="enjoyVal">--</span>
+                    </div>
+                    <p class="text-xs text-text-muted mb-2">1 = Dreaded workouts, 10 = Looked forward to every session</p>
+                    {{ form.enjoyment }}
+                    {{ form.enjoyment.errors }}
+                </div>
+            </div>
+
+            <!-- Optional Telemetry Heart Rate -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 rounded-xl bg-surface-slate/40 border border-border-subtle">
+                <div class="field mb-0">
+                    <label for="{{ form.resting_bpm.id_for_label }}" class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-coral-burn">favorite</span>
+                        <span>Resting Heart Rate (BPM, optional)</span>
+                    </label>
+                    {{ form.resting_bpm }}
+                    {{ form.resting_bpm.errors }}
+                </div>
+                <div class="field mb-0">
+                    <label for="{{ form.avg_workout_bpm.id_for_label }}" class="flex items-center gap-1.5">
+                        <span class="material-symbols-outlined text-sm text-electric-lime">ecg_heart</span>
+                        <span>Avg Workout Heart Rate (BPM, optional)</span>
+                    </label>
+                    {{ form.avg_workout_bpm }}
+                    {{ form.avg_workout_bpm.errors }}
+                </div>
+            </div>
+
+            <!-- Flags & Qualitative Feedback -->
+            <div class="space-y-4 pt-2">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="p-4 rounded-xl bg-surface-slate/30 border border-border-subtle flex items-center gap-3">
+                        {{ form.pain_flag }}
+                        <label for="{{ form.pain_flag.id_for_label }}" class="mb-0 font-body text-sm font-semibold text-text-primary cursor-pointer">
+                            Did you experience joint pain or acute discomfort?
+                        </label>
+                    </div>
+                    <div class="p-4 rounded-xl bg-surface-slate/30 border border-border-subtle flex items-center gap-3">
+                        {{ form.sessions_too_long }}
+                        <label for="{{ form.sessions_too_long.id_for_label }}" class="mb-0 font-body text-sm font-semibold text-text-primary cursor-pointer">
+                            Were sessions too long for your schedule?
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="{{ form.pain_details.id_for_label }}">Pain / Injury Details (if applicable)</label>
+                    {{ form.pain_details }}
+                    {{ form.pain_details.errors }}
+                </div>
+
+                {% if form.disliked_exercises %}
+                    <div class="field">
+                        <label for="{{ form.disliked_exercises.id_for_label }}">Disliked or Problematic Exercises</label>
+                        {{ form.disliked_exercises }}
+                        {{ form.disliked_exercises.errors }}
+                    </div>
+                {% endif %}
+
+                {% if form.performance_change %}
+                    <div class="field">
+                        <label for="{{ form.performance_change.id_for_label }}">Performance Observations</label>
+                        {{ form.performance_change }}
+                        {{ form.performance_change.errors }}
+                    </div>
+                {% endif %}
+
+                <div class="field">
+                    <label for="{{ form.barrier_to_completion.id_for_label }}">Barriers to Completion (if any)</label>
+                    {{ form.barrier_to_completion }}
+                    {{ form.barrier_to_completion.errors }}
+                </div>
+            </div>
+
+            <!-- Submit Cluster -->
+            <div class="pt-4 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+                <a href="{% url 'programs:plan_detail' program.id %}" class="btn btn-muted w-full sm:w-auto">
+                    Return to Plan
+                </a>
+                <button type="submit" class="btn btn-primary w-full sm:w-auto py-3 px-8 text-base">
+                    <span class="material-symbols-outlined text-lg">check_circle</span>
+                    <span>Submit & Calibrate Next Week</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Live update indicators for range/number inputs
+    const diff = document.getElementById('id_difficulty');
+    const energy = document.getElementById('id_energy');
+    const recov = document.getElementById('id_recovery');
+    const enjoy = document.getElementById('id_enjoyment');
+
+    function syncValue(input, targetId) {
+        if (!input) return;
+        const target = document.getElementById(targetId);
+        if (target) {
+            target.textContent = input.value ? input.value + '/10' : '--';
+        }
+    }
+
+    if (diff) {
+        diff.addEventListener('input', () => syncValue(diff, 'diffVal'));
+        syncValue(diff, 'diffVal');
+    }
+    if (energy) {
+        energy.addEventListener('input', () => syncValue(energy, 'energyVal'));
+        syncValue(energy, 'energyVal');
+    }
+    if (recov) {
+        recov.addEventListener('input', () => syncValue(recov, 'recovVal'));
+        syncValue(recov, 'recovVal');
+    }
+    if (enjoy) {
+        enjoy.addEventListener('input', () => syncValue(enjoy, 'enjoyVal'));
+        syncValue(enjoy, 'enjoyVal');
+    }
+</script>
 {% endblock %}

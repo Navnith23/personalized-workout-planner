@@ -1,29 +1,76 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Fitness & Lifestyle Planner{% endblock %}</title>
+    <title>{% block title %}KINETIC//PLANNER — Adaptive Athletic Architecture{% endblock %}</title>
     <link rel="icon" href="{% static 'favicon.svg' %}" type="image/svg+xml">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS (forms & container-queries) -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-obsidian": "#080C14",
+              "surface-dim": "#0b1326",
+              "surface-slate": "#0F172A",
+              "surface-card": "#162032",
+              "surface-card-hover": "#1E2B42",
+              "surface-container-high": "#222a3d",
+              "border-subtle": "#1E293B",
+              "border-active": "#334155",
+              "text-primary": "#F8FAFC",
+              "text-secondary": "#94A3B8",
+              "text-muted": "#64748B",
+              "electric-lime": "#D4FF00",
+              "emerald-pulse": "#10B981",
+              "coral-burn": "#FF5A5F"
+            },
+            fontFamily: {
+              "display": ["Space Grotesk", "sans-serif"],
+              "body": ["Plus Jakarta Sans", "sans-serif"]
+            }
+          }
+        }
+      }
+    </script>
+    
+    <!-- Kinetic Obsidian Baseline Stylesheet -->
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="bg-surface-obsidian text-text-primary antialiased min-h-screen flex flex-col font-body selection:bg-electric-lime selection:text-surface-obsidian">
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" href="{% url 'landing' %}">Personalized Fitness Planner</a>
+            <div class="brand-wrapper">
+                <a class="brand" href="{% url 'landing' %}">
+                    <span class="material-symbols-outlined text-electric-lime" style="font-variation-settings: 'FILL' 1;">bolt</span>
+                    <span>KINETIC//SYNC</span>
+                </a>
+                <span class="brand-badge hidden sm:inline-flex">v3.4 CORE</span>
+            </div>
             <nav>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'assessment:dashboard_redirect' %}">My Plan</a>
-                    <a href="{% url 'progress:checkin' %}">Weekly Check-in</a>
-                    <a href="{% url 'progress_history:history' %}">Progress</a>
+                    <a href="{% url 'assessment:dashboard_redirect' %}" class="{% if request.resolver_match.app_name == 'programs' %}active{% endif %}">My Plan</a>
+                    <a href="{% url 'progress:checkin' %}" class="{% if request.resolver_match.url_name == 'checkin' %}active{% endif %}">Weekly Check-in</a>
+                    <a href="{% url 'progress_history:history' %}" class="{% if request.resolver_match.app_name == 'progress_history' %}active{% endif %}">Telemetry & History</a>
                     <form action="{% url 'accounts:logout' %}" method="post" class="logout-form">
                         {% csrf_token %}
                         <button type="submit" class="link-button">Log out</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'accounts:login' %}">Log in</a>
-                    <a href="{% url 'accounts:signup' %}" class="btn-link">Get Started</a>
+                    <a href="{% url 'accounts:login' %}">Log In</a>
+                    <a href="{% url 'accounts:signup' %}" class="btn-link">Start Assessment</a>
                 {% endif %}
             </nav>
         </div>
@@ -33,7 +80,15 @@
         {% if messages %}
             <ul class="messages">
                 {% for message in messages %}
-                    <li class="message {{ message.tags }}">{{ message }}</li>
+                    <li class="message {{ message.tags }}">
+                        <span class="material-symbols-outlined text-lg">
+                            {% if message.tags == 'success' %}check_circle
+                            {% elif message.tags == 'error' %}error
+                            {% elif message.tags == 'warning' %}warning
+                            {% else %}info{% endif %}
+                        </span>
+                        <span>{{ message }}</span>
+                    </li>
                 {% endfor %}
             </ul>
         {% endif %}
@@ -42,9 +97,10 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p>This tool provides general fitness guidance and is not a substitute for professional medical advice.</p>
-            <p><a href="{% url 'privacy' %}">Privacy Policy</a></p>
+            <p>KINETIC ARCHITECTURE — General athletic programming and recovery calibration engine. Not a substitute for medical advice.</p>
+            <p class="mt-2"><a href="{% url 'privacy' %}">Privacy Policy & Telemetry Security</a></p>
         </div>
     </footer>
+    {% block extra_scripts %}{% endblock %}
 </body>
 </html>

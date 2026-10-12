@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Fitness Planner">
-  <rect width="64" height="64" rx="16" fill="#FF6F5E"/>
-  <path d="M18 28h8v-7h6v22h-6v-7h-8v-8Zm28 0h-8v-7h-6v22h6v-7h8v-8Z" fill="#fff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Kinetic Sync">
+  <rect width="64" height="64" rx="16" fill="#080C14"/>
+  <path d="M35 8L17 34h12l-4 22 22-28H35l4-20z" fill="#D4FF00"/>
 </svg>
